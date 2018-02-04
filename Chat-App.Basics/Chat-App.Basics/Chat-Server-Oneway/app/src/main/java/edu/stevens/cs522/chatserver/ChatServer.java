@@ -62,6 +62,8 @@ public class ChatServer extends Activity implements OnClickListener {
 		adapter = new ArrayAdapter<>(this, R.layout.message, msgList);
 		msgView.setAdapter(adapter);
 
+		next = findViewById(R.id.next);
+
 		/**
 		 * Let's be clear, this is a HACK to allow you to do network communication on the main thread.
 		 * This WILL cause an ANR, and is only provided to simplify the pedagogy.  We will see how to do
@@ -88,22 +90,31 @@ public class ChatServer extends Activity implements OnClickListener {
 	}
 
 	public void onClick(View v) {
+        socketOK = socketIsOK();
+	    if (socketOK) {
+	        Log.d("Socket state", "Socket is ok.");
+        } else {
+            Log.d("Socket state", "Socket is BAD.");
+            closeSocket();
+        }
 
 		byte[] receiveData = new byte[1024];
 
 		DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 
 		try {
-			
+
+            serverSocket.setSoTimeout(3000);
 			serverSocket.receive(receivePacket);
 			Log.i(TAG, "Received a packet");
 
 			InetAddress sourceIPAddress = receivePacket.getAddress();
 			Log.i(TAG, "Source IP Address: " + sourceIPAddress);
-			
+
 			/*
 			 * TODO: Extract sender and receiver from message and display.
 			 */
+
             receiveData = receivePacket.getData();
             String msg = new String(receiveData, "UTF-8");
             msgList.add(msg);

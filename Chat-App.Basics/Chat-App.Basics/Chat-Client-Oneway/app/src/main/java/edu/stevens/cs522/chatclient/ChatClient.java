@@ -116,6 +116,7 @@ public class ChatClient extends Activity implements OnClickListener {
 	 * Callback for the SEND button.
 	 */
 	public void onClick(View v) {
+
 		try {
 			/*
 			 * On the emulator, which does not support WIFI stack, we'll send to
@@ -131,17 +132,19 @@ public class ChatClient extends Activity implements OnClickListener {
 
 			// TODO get data from UI
             messageText = findViewById(R.id.message_text);
+            destinationHost = findViewById(R.id.destination_host);
+            destinationPort = findViewById(R.id.destination_port);
+
             sendData = messageText.getText().toString().getBytes();
 
             // Pull the IP address of the destination
-            destAddr = (InetAddress) destinationHost.getText();
+            destAddr = InetAddress.getByName(destinationHost.getText().toString());
             destPort = Integer.parseInt(destinationPort.getText().toString());
 
 			DatagramPacket sendPacket = new DatagramPacket(sendData,
 					sendData.length, destAddr, destPort);
 
 			clientSocket.send(sendPacket);
-
 			Log.i(TAG, "Sent packet: " + messageText);
 
 			
