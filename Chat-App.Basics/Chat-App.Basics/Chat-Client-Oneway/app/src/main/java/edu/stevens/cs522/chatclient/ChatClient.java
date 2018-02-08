@@ -47,8 +47,6 @@ public class ChatClient extends Activity implements OnClickListener {
 	public static final String CLIENT_PORT_KEY = "client_port";
 	
 	public static final int DEFAULT_CLIENT_PORT = 6666;
-
-	public static final String USER_NAME = "Mike";
 	
 	/*
 	 * Socket used for sending
@@ -134,8 +132,12 @@ public class ChatClient extends Activity implements OnClickListener {
             messageText = findViewById(R.id.message_text);
             destinationHost = findViewById(R.id.destination_host);
             destinationPort = findViewById(R.id.destination_port);
+			String message = DEFAULT_CLIENT_NAME + ": " + messageText.getText().toString();
+            sendData = message.getBytes("UTF-8");
 
-            sendData = messageText.getText().toString().getBytes();
+            // had trouble getting teh get bytes on the same line as the string
+
+			Log.i(TAG, "Sent data " + message);
 
             // Pull the IP address of the destination
             destAddr = InetAddress.getByName(destinationHost.getText().toString());

@@ -90,14 +90,16 @@ public class ChatServer extends Activity implements OnClickListener {
 	}
 
 	public void onClick(View v) {
-        socketOK = socketIsOK();
-	    if (socketOK) {
-	        Log.d("Socket state", "Socket is ok.");
+        /*
+		socketOK = socketIsOK();
+
+        if (socketOK) {
+	        Log.d(TAG, "Socket is ok.");
         } else {
-            Log.d("Socket state", "Socket is BAD.");
+            Log.d(TAG, "Socket is BAD.");
             closeSocket();
         }
-
+		*/
 		byte[] receiveData = new byte[1024];
 
 		DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
@@ -117,6 +119,7 @@ public class ChatServer extends Activity implements OnClickListener {
 
             receiveData = receivePacket.getData();
             String msg = new String(receiveData, "UTF-8");
+            String fromUser = msg.split(":")[0];
             msgList.add(msg);
             adapter.notifyDataSetChanged();
 
