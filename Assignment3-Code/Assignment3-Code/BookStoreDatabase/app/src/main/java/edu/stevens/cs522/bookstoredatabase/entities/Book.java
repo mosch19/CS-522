@@ -74,6 +74,15 @@ public class Book implements Parcelable {
 		price = BookContract.getPrice(cursor);
 	}
 
+	// TODO should I use a standard constructor for book? Or just insert it to the db?
+	public Book(int id, String title, Author[] author, String isbn, String price) {
+		this.id = id;
+		this.title = title;
+		this.authors = author;
+		this.isbn = isbn;
+		this.price = price;
+	}
+
 	public void writeToProvider(ContentValues out) {
 		// TODO write to ContentValues
         BookContract.putTitle(out);
