@@ -3,6 +3,7 @@ package edu.stevens.cs522.bookstoredatabase.activities;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -12,6 +13,7 @@ import android.widget.ListView;
 import edu.stevens.cs522.bookstoredatabase.R;
 import edu.stevens.cs522.bookstoredatabase.entities.Author;
 import edu.stevens.cs522.bookstoredatabase.entities.Book;
+import edu.stevens.cs522.bookstoredatabase.entities.Utils;
 
 
 public class AddBookActivity extends Activity {
@@ -58,16 +60,16 @@ public class AddBookActivity extends Activity {
 		return false;
 	}
 	
-	public Book addBook(){
+	public Book addBook() {
 		// TODO Just build a Book object with the search criteria and return that.
 		EditText search_title = (EditText) findViewById(R.id.search_title);
 		EditText search_author = (EditText) findViewById(R.id.search_author);
 		EditText search_isbn = (EditText) findViewById(R.id.search_isbn);
 
 		String title = search_title.getText().toString();
-		Author authors[] = Utils.parseAuthors(search_author.getText().toString());
+		// TODO no longer parse this way
+		Author[] authors = Utils.parseAuthors(search_author.getText().toString());
 		String isbn = search_isbn.getText().toString();
-
 		return new Book(1, title, authors, isbn, "0");
 	}
 

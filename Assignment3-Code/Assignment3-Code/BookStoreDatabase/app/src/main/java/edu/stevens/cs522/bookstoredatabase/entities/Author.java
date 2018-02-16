@@ -1,5 +1,6 @@
 package edu.stevens.cs522.bookstoredatabase.entities;
 
+import android.content.ContentValues;
 import android.database.Cursor;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -14,7 +15,7 @@ public class Author implements Parcelable {
 
 	// NOTE: middleInitial may be NULL!
 
-	public long id;
+	public long FK;
 	
 	public String firstName;
 	
@@ -44,11 +45,13 @@ public class Author implements Parcelable {
 	}
 
 	private Author(Parcel in) {
-		id = in.readLong();
+		FK = in.readLong();
 		firstName = in.readString();
 		middleInitial = in.readString();
 		lastName = in.readString();
 	}
+
+	public Author() {}
 
 	public Author(Cursor cursor) {
 		firstName = AuthorContract.getFirstName(cursor);
@@ -61,7 +64,7 @@ public class Author implements Parcelable {
 	}
 
 	public void writeToParcel(Parcel out, int flags) {
-		out.writeLong(id);
+		out.writeLong(FK);
 		out.writeString(firstName);
 		out.writeString(middleInitial);
 		out.writeString(lastName);
@@ -92,6 +95,13 @@ public class Author implements Parcelable {
 			sb.append(lastName);
 		}
 		return sb.toString();
+	}
+
+	public void writeToProvider(ContentValues out) {
+		AuthorContract.putFK(out, this.FK);
+		AuthorContract.putFirstName(out, this.firstName);
+		AuthorContract.putMiddleInitial(out, this.middleInitial);
+		AuthorContract.putLastName(out, this.lastName);
 	}
 
 }

@@ -14,16 +14,13 @@ import static android.R.attr.author;
 
 public class AuthorContract implements BaseColumns {
 
+    public static final String _ID = "_id";
+    public static final String FK = "fk";
     public static final String FIRST_NAME = "first";
-
     public static final String MIDDLE_INITIAL = "initial";
-
     public static final String LAST_NAME = "last";
 
-    /*
-     * FIRST_NAME column
-     */
-
+    private static int fkColumn = -1;
     private static int firstNameColumn = -1;
     private static int middleInitialColumn = -1;
     private static int lastNameColumn = -1;
@@ -61,6 +58,11 @@ public class AuthorContract implements BaseColumns {
         values.put(LAST_NAME, lastName);
     }
 
-    // TODO complete the definitions of the other operations
+    public static long getFk(Cursor cursor) {
+        return cursor.getLong(fkColumn);
+    }
 
+    public static void putFK(ContentValues values, long fk) {
+        values.put(FK, fk);
+    }
 }

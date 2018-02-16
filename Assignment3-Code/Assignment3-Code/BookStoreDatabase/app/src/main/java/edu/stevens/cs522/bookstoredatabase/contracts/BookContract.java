@@ -3,6 +3,7 @@ package edu.stevens.cs522.bookstoredatabase.contracts;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.provider.BaseColumns;
+import android.util.Log;
 
 import java.util.regex.Pattern;
 
@@ -12,17 +13,11 @@ import java.util.regex.Pattern;
 
 public class BookContract implements BaseColumns {
 
+    public static final String _ID = "_id";
     public static final String TITLE = "title";
-
     public static final String AUTHORS = "authors";
-
     public static final String ISBN = "isbn";
-
     public static final String PRICE = "price";
-
-    /*
-     * TITLE column
-     */
 
     private static int titleColumn = -1;
     private static int authorsColumn = -1;
@@ -30,6 +25,7 @@ public class BookContract implements BaseColumns {
     private static int priceColumn = -1;
 
     public static String getTitle(Cursor cursor) {
+        Log.d("Inside get title: ", "haha what");
         if (titleColumn < 0) {
             titleColumn =  cursor.getColumnIndexOrThrow(TITLE);;
         }
@@ -48,6 +44,13 @@ public class BookContract implements BaseColumns {
             priceColumn = cursor.getColumnIndexOrThrow(PRICE);
         }
         return cursor.getString(priceColumn);
+    }
+
+    public static String[] getAuthors(Cursor cursor) {
+        if (authorsColumn < 0) {
+            authorsColumn =  cursor.getColumnIndexOrThrow(AUTHORS);;
+        }
+        return readStringArray(cursor.getString(authorsColumn));
     }
 
     public static void putTitle(ContentValues values, String title) {
@@ -70,21 +73,11 @@ public class BookContract implements BaseColumns {
         return SEPARATOR.split(in);
     }
 
-    private static int authorColumn = -1;
-
-    public static String[] getAuthors(Cursor cursor) {
-        if (authorColumn < 0) {
-            authorColumn =  cursor.getColumnIndexOrThrow(AUTHORS);;
-        }
-        return readStringArray(cursor.getString(authorColumn));
-    }
-
     public static void putAuthors(ContentValues values, String authors) {
         values.put(AUTHORS, authors);
     }
 
 
     // TODO complete definitions of other getter and setter operations
-
 
 }

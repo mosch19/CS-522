@@ -6,7 +6,11 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
+import edu.stevens.cs522.bookstoredatabase.contracts.AuthorContract;
+import edu.stevens.cs522.bookstoredatabase.contracts.BookContract;
+import edu.stevens.cs522.bookstoredatabase.entities.Author;
 import edu.stevens.cs522.bookstoredatabase.entities.Book;
 
 /**
@@ -27,49 +31,27 @@ public class CartDbAdapter {
 
     private SQLiteDatabase db;
 
-    // Column declarations for BOOK_TABLE
-    public static final String _ID = "_id";
-    public static final String TITLE = "title";
-    public static final String AUTHOR = "author";
-    public static final String ISBN = "isbn";
-    public static final String PRICE = "price";
-
-    // Column indexes for BOOK_TABLE
-    public static final int TITLE_KEY = 1;
-    public static final int AUTHOR_KEY = TITLE_KEY + 1;
-    public static final int ISBN_KEY = AUTHOR_KEY + 1;
-    public static final int PRICE_KEY = ISBN_KEY + 1;
-
-    // Column declarations for AUTHOR_TABLE
-    public static final String _ID2 = "_id";
-    public static final String FIRSTNAME = "firstname";
-    public static final String MIDDLEINITIAL = "middleinitial";
-    public static final String LASTNAME = "lastname";
-
-    // Column indexes for AUTHOR_TABLE
-    public static final int FIRSTNAME_KEY = 1;
-    public static final int MIDDLEINITIAL_KEY = FIRSTNAME_KEY + 1;
-    public static final int LASTNAME_KEY = MIDDLEINITIAL_KEY + 1;
-
     public static class DatabaseHelper extends SQLiteOpenHelper {
 
         // TODO
         private static final String BOOK_CREATE =
-                "create table" + BOOK_TABLE + " ("
-                + _ID + " integer primary key, "
-                + TITLE + " text not null, "
-                + AUTHOR + " text not null, "
-                + ISBN + " text not null, "
-                + PRICE + " text not null "
+                "create table " + BOOK_TABLE + " ("
+                + BookContract._ID + " integer primary key, "
+                + BookContract.TITLE + " text not null, "
+                + BookContract.ISBN + " text not null, "
+                + BookContract.PRICE + " text "
                 + ")";
 
         private static final String AUTHOR_CREATE =
-                "create table" + AUTHOR_TABLE + " ("
-                + _ID + " integer primary key, "
-                + FIRSTNAME + " text not null,"
-                + MIDDLEINITIAL + " text not null,"
-                + LASTNAME + " text not null "
-                + ")";
+                "create table " + AUTHOR_TABLE + " ("
+                + AuthorContract._ID + " integer primary key, "
+                + AuthorContract.FK + " integer not null, "
+                + AuthorContract.FIRST_NAME + " text not null, "
+                + AuthorContract.MIDDLE_INITIAL + " text, "
+                + AuthorContract.LAST_NAME + " text not null, "
+                + " FOREIGN	KEY	(FK) REFERENCES	books(_id) ON DELETE CASCADE)";
+
+                // + " CREATE INDEX AuthorsBookIndex ON Authors(FK)";
 
         public DatabaseHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
             super(context, name, factory, version);
@@ -80,12 +62,19 @@ public class CartDbAdapter {
             // TODO create both tables
             db.execSQL(BOOK_CREATE);
             db.execSQL(AUTHOR_CREATE);
+            db.execSQL("PRAGMA	foreign_keys=1;");
         }
 
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
             // TODO update both tables...
-
+            //	Log	the	version	upgrade.
+            Log.w("TaskDBAdapter",
+                    "Upgrading	from version	"	+ oldVersion
+                            +	"	to	"	+ newVersion);
+            db.execSQL("DROP	TABLE	IF	EXISTS	"	+	BOOK_TABLE);
+            db.execSQL("DROP    TABLE   IF  EXISTS  "   +   AUTHOR_TABLE);
+            //	Create	a	new	one.
             onCreate(db);
         }
     }
@@ -95,48 +84,70 @@ public class CartDbAdapter {
         dbHelper = new DatabaseHelper(_context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
-    public CartDbAdapter open() throws SQLException {
-        // TODO
+    //TODO
+    public void open() throws SQLException {
         db = dbHelper.getWritableDatabase();
-        return this;
+        dbHelper.onUpgrade(db,1,1);
     }
 
     public Cursor fetchAllBooks() {
         // TODO
-        String[] projection = { _ID, TITLE, AUTHOR, ISBN, PRICE };
-        return db.query(BOOK_TABLE,
-                        projection,
-                        null, null, null, null, null);
-        // return null;
+        String joinQ = "SELECT "
+                + BOOK_TABLE + "."
+                + BookContract._ID + ", "
+                + BookContract.TITLE + ", "
+                + BookContract.PRICE + ", "
+                + BookContract.ISBN + ", "
+                + "GROUP_CONCAT(" + AuthorContract.FIRST_NAME
+                + " || ' ' || " + AuthorContract.MIDDLE_INITIAL
+                + " || ' ' || " + AuthorContract.LAST_NAME + ", '|') "
+                + "as " + BookContract.AUTHORS + " "
+                + "FROM " + BOOK_TABLE + " JOIN "
+                + AUTHOR_TABLE +" ON "
+                + BOOK_TABLE + "." + BookContract._ID + "=" + AUTHOR_TABLE + "." + AuthorContract.FK
+                + " GROUP BY " + BOOK_TABLE + "." + BookContract._ID + ", "
+                + BookContract.TITLE + ", "
+                + BookContract.ISBN + ", "
+                + BookContract.PRICE;
+
+        return db.rawQuery(joinQ, null);
+//        String[] projection = { BookContract._ID, BookContract.TITLE, BookContract.ISBN, BookContract.PRICE };
+//        return db.query(BOOK_TABLE, projection, null, null, null, null, null);
     }
 
     // TODO link to book constructor for cursors
     public Book fetchBook(long rowId) {
         // TODO
-        String[] projection = { _ID, TITLE, AUTHOR, ISBN, PRICE };
-        String selection = _ID + "=" + Long.toString(rowId);
+        String[] projection = { BookContract._ID, BookContract.TITLE, BookContract.ISBN, BookContract.PRICE };
+        String selection = BookContract._ID + "=" + Long.toString(rowId);
         return new Book(db.query(BOOK_TABLE,
                         projection,
                         selection,
                         null, null, null, null));
-
-        // return null;
     }
 
-    public void persist(Book book) throws SQLException {
+    // TODO Shouldn't this return a long???
+    public long persist(Book book) throws SQLException {
+        book.printAuthors();
         // TODO how to deal with Author[] also should I insert the new author here as well?
         ContentValues contentValues = new ContentValues();
-        contentValues.put(TITLE, book.title);
-        contentValues.put(AUTHOR, book.authors);
-        contentValues.put(ISBN, book.isbn);
-        contentValues.put(PRICE, book.price);
-        db.insert(BOOK_TABLE, null, contentValues);
+        ContentValues authorValues = new ContentValues();
+        book.writeToProvider(contentValues);
+        long row = db.insert(BOOK_TABLE, null, contentValues);
+        for (int i = 0; i < book.authors.length; i++) {
+            book.authors[i].FK = row;
+            Log.d("Persist: ", " " + book.authors[i].toString());
+            book.authors[i].writeToProvider(authorValues);
+            db.insert(AUTHOR_TABLE, null, authorValues);
+            authorValues.clear();
+        }
+        return row;
     }
 
-    // TODO need to get a book id somehow...
+    // TODO need to get a book id somehow...what to return...
     public boolean delete(Book book) {
         db.delete(BOOK_TABLE,
-                _ID + "=" + book.id,
+                BookContract._ID + "=" + book.id,
                 null);
         return false;
     }

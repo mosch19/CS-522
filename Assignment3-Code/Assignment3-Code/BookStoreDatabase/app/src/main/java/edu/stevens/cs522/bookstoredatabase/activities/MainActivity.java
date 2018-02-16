@@ -7,6 +7,7 @@ import android.app.ListActivity;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -30,6 +31,8 @@ public class MainActivity extends Activity {
 	
 	// These are request codes for subactivity request calls
 	static final private int ADD_REQUEST = 1;
+
+    public static final String BOOK_VIEW_KEY = "book_view";
 	
 	@SuppressWarnings("unused")
 	static final private int CHECKOUT_REQUEST = ADD_REQUEST + 1;
@@ -39,8 +42,10 @@ public class MainActivity extends Activity {
 
 	// The database adapter
 	private CartDbAdapter dba;
+	// Todo don't use the arrayList anymore
 	private ArrayList<Book> shoppingCart;
 	private SimpleCursorAdapter simpleCursorAdapter;
+	private ListView listView;
     // TODO add options for the simpleCursorAdapter
 	private String[] from = new String[] {
             BookContract.TITLE,
@@ -56,11 +61,9 @@ public class MainActivity extends Activity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		// Create the cart ArrayList
-		shoppingCart = new ArrayList<Book>();
-
 		// TODO check if there is saved UI state, and if so, restore it (i.e. the cart contents)
 		if(savedInstanceState != null) {
+		    // TODO restore the database
 			shoppingCart = savedInstanceState.getParcelableArrayList(CART_CONTENTS);
 		}
 		// TODO Set the layout (use cart.xml layout)
@@ -69,10 +72,13 @@ public class MainActivity extends Activity {
 		dba = new CartDbAdapter(this);
 		dba.open();
         // TODO query the database using the database adapter, and manage the cursor on the main thread
-        dba.fetchAllBooks(); // returns a cursor with all books left
+        dba.fetchAllBooks();
         // TODO use SimpleCursorAdapter to display the cart contents.
         simpleCursorAdapter = new SimpleCursorAdapter(this, android.R.layout.simple_list_item_2, dba.fetchAllBooks(), from, to);
-        startManagingCursor(dba.fetchAllBooks());
+        // startManagingCursor(dba.fetchAllBooks());
+        listView = (ListView) findViewById(android.R.id.list);
+        listView.setAdapter(simpleCursorAdapter);
+        registerForContextMenu(listView);
     }
 
 	@Override
@@ -107,8 +113,7 @@ public class MainActivity extends Activity {
     }
 
 	@Override
-	protected void onActivityResult(int requestCode, int resultCode,
-			Intent intent) {
+	protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
 		super.onActivityResult(requestCode, resultCode, intent);
 		// TODO Handle results from the Search and Checkout activities.
 
@@ -118,7 +123,9 @@ public class MainActivity extends Activity {
                 // ADD: add the book that is returned to the shopping cart.
                 if(resultCode == RESULT_OK) {
                     Book result = intent.getParcelableExtra(AddBookActivity.BOOK_RESULT_KEY);
-                    shoppingCart.add(result);
+                    dba.persist(result);
+                    simpleCursorAdapter.changeCursor(dba.fetchAllBooks());
+                    simpleCursorAdapter.notifyDataSetChanged();
                     break;
                 } else if(resultCode == RESULT_CANCELED) {
                     break;
@@ -127,7 +134,7 @@ public class MainActivity extends Activity {
             case CHECKOUT_REQUEST:
                 // CHECKOUT: empty the shopping cart.
                 if(resultCode == RESULT_OK) {
-                    shoppingCart.clear();
+                    dba.deleteAll();
                 } else if(resultCode == RESULT_CANCELED) {
                     break;
                 }
@@ -138,8 +145,7 @@ public class MainActivity extends Activity {
 	}
 
     @Override
-    public void onCreateContextMenu(ContextMenu menu, View view,
-                                    ContextMenu.ContextMenuInfo menuInfo) {
+    public void onCreateContextMenu(ContextMenu menu, View view, ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, view, menuInfo);
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.cart_context_menu, menu);
@@ -151,25 +157,27 @@ public class MainActivity extends Activity {
         switch (item.getItemId()) {
             case R.id.view_book:
                 Intent viewIntent = new Intent(this, ViewBookActivity.class);
-                Book toView = shoppingCart.get((int) info.id);
+                Book toView = dba.fetchBook(info.id);
                 viewIntent.putExtra(BOOK_VIEW_KEY, toView);
                 startActivity(viewIntent);
                 return true;
             case R.id.delete_book:
-                shoppingCart.remove((int) info.id);
-                adapter.notifyDataSetChanged();
-
-                // display cart is empty again
-                if (shoppingCart.isEmpty()) {
-                    TextView emptyCart = findViewById(android.R.id.empty);
-                    emptyCart.setVisibility(View.VISIBLE);
-                }
-
+                Book toDelete = dba.fetchBook(info.id);
+                dba.delete(toDelete);
                 return true;
             default:
                 return super.onContextItemSelected(item);
         }
     }
+
+
+
+    @Override
+    public void onDestroy() {
+	    dba.close();
+	    dba.deleteAll();
+        super.onDestroy();
+	}
 	
 	@Override
 	public void onSaveInstanceState(Bundle savedInstanceState) {

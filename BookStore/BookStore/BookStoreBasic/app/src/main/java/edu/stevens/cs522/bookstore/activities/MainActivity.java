@@ -96,9 +96,6 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
-    // extend appcompatiability in order to use menus
-
-    // Create a floating menu in order to view or delete a book from the list
     @Override
     public void onCreateContextMenu(ContextMenu menu, View view,
                                     ContextMenu.ContextMenuInfo menuInfo) {
@@ -120,12 +117,6 @@ public class MainActivity extends AppCompatActivity {
             case R.id.delete_book:
                 shoppingCart.remove((int) info.id);
                 adapter.notifyDataSetChanged();
-
-                // display cart is empty again
-                if (shoppingCart.isEmpty()) {
-                    TextView emptyCart = findViewById(android.R.id.empty);
-                    emptyCart.setVisibility(View.VISIBLE);
-                }
 
                 return true;
             default:
