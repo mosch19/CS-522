@@ -38,6 +38,7 @@ public class CartDbAdapter {
                 "create table " + BOOK_TABLE + " ("
                 + BookContract._ID + " integer primary key, "
                 + BookContract.TITLE + " text not null, "
+                + BookContract.AUTHORS + " text not null, "
                 + BookContract.ISBN + " text not null, "
                 + BookContract.PRICE + " text "
                 + ")";
@@ -118,7 +119,7 @@ public class CartDbAdapter {
     // TODO link to book constructor for cursors
     public Book fetchBook(long rowId) {
         // TODO
-        String[] projection = { BookContract._ID, BookContract.TITLE, BookContract.ISBN, BookContract.PRICE };
+        String[] projection = { BookContract._ID, BookContract.TITLE, BookContract.AUTHORS, BookContract.ISBN, BookContract.PRICE };
         String selection = BookContract._ID + "=" + Long.toString(rowId);
         return new Book(db.query(BOOK_TABLE,
                         projection,
@@ -129,7 +130,6 @@ public class CartDbAdapter {
     // TODO Shouldn't this return a long???
     public long persist(Book book) throws SQLException {
         book.printAuthors();
-        // TODO how to deal with Author[] also should I insert the new author here as well?
         ContentValues contentValues = new ContentValues();
         ContentValues authorValues = new ContentValues();
         book.writeToProvider(contentValues);
@@ -144,7 +144,7 @@ public class CartDbAdapter {
         return row;
     }
 
-    // TODO need to get a book id somehow...what to return...
+    // TODO need to get a book id
     public boolean delete(Book book) {
         db.delete(BOOK_TABLE,
                 BookContract._ID + "=" + book.id,

@@ -102,6 +102,7 @@ public class Book implements Parcelable {
 	public void writeToProvider(ContentValues out) {
 		// TODO write to ContentValues
         BookContract.putTitle(out, this.title);
+        BookContract.putAuthors(out, this.title);
         BookContract.putISBN(out, this.isbn);
         BookContract.putPrice(out, this.price);
 	}
