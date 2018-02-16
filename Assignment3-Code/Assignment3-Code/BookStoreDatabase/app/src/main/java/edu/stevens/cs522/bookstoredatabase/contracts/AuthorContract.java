@@ -27,7 +27,7 @@ public class AuthorContract implements BaseColumns {
 
     public static String getFirstName(Cursor cursor) {
         if (firstNameColumn < 0) {
-            firstNameColumn =  cursor.getColumnIndexOrThrow(FIRST_NAME);;
+            firstNameColumn =  cursor.getColumnIndexOrThrow(FIRST_NAME);
         }
         return cursor.getString(firstNameColumn);
     }

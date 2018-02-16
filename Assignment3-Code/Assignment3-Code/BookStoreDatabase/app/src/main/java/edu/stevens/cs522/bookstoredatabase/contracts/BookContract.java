@@ -19,10 +19,10 @@ public class BookContract implements BaseColumns {
     public static final String ISBN = "isbn";
     public static final String PRICE = "price";
 
-    private static int titleColumn = -1;
-    private static int authorsColumn = -1;
-    private static int isbnColumn = -1;
-    private static int priceColumn = -1;
+    private static int titleColumn = 1;
+    private static int authorsColumn = titleColumn + 1;
+    private static int isbnColumn = authorsColumn + 1;
+    private static int priceColumn = isbnColumn + 1;
 
     public static String getTitle(Cursor cursor) {
         Log.d("Inside get title: ", "haha what");
