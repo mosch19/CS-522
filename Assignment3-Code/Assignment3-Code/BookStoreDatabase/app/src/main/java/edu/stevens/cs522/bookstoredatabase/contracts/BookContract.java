@@ -24,20 +24,12 @@ public class BookContract implements BaseColumns {
     private static int isbnColumn = -1;
     private static int priceColumn = -1;
 
-
     public static String getTitle(Cursor cursor) {
-        Log.d("Title column pre if: ", " " + titleColumn);
         if (titleColumn < 0) {
             titleColumn =  cursor.getColumnIndexOrThrow(TITLE);;
-            Log.d("Title column: ", " " + titleColumn);
-            Log.d("Rows: ", " " + cursor.getCount());
         }
         if(cursor != null) {
             cursor.moveToFirst();
-            String id = cursor.getString(0);
-            String id2 = cursor.getString(1);
-            Log.d("One: ", id);
-            Log.d("Two: ", id2);
         }
         return cursor.getString(titleColumn);
     }
@@ -46,6 +38,9 @@ public class BookContract implements BaseColumns {
         if (isbnColumn < 0) {
             isbnColumn = cursor.getColumnIndexOrThrow(ISBN);
         }
+        if(cursor != null) {
+            cursor.moveToFirst();
+        }
         return cursor.getString(isbnColumn);
     }
 
@@ -53,12 +48,18 @@ public class BookContract implements BaseColumns {
         if (priceColumn < 0) {
             priceColumn = cursor.getColumnIndexOrThrow(PRICE);
         }
+        if(cursor != null) {
+            cursor.moveToFirst();
+        }
         return cursor.getString(priceColumn);
     }
 
     public static String[] getAuthors(Cursor cursor) {
         if (authorsColumn < 0) {
             authorsColumn =  cursor.getColumnIndexOrThrow(AUTHORS);;
+        }
+        if(cursor != null) {
+            cursor.moveToFirst();
         }
         return readStringArray(cursor.getString(authorsColumn));
     }

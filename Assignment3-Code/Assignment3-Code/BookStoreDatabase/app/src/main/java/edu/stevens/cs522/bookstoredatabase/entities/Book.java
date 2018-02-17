@@ -14,7 +14,7 @@ public class Book implements Parcelable {
 	
 	// TODO Modify this to implement the Parcelable interface.
 
-	public long id;
+	public long _id;
 	
 	public String title;
 	
@@ -52,7 +52,7 @@ public class Book implements Parcelable {
 
 	public Book(Parcel in) {
 		// TODO init from parcel
-		id = in.readLong();
+		_id = in.readLong();
 		title = in.readString();
 		isbn = in.readString();
 		price = in.readString();
@@ -61,7 +61,7 @@ public class Book implements Parcelable {
 
 	public void writeToParcel(Parcel out, int flags) {
 		// TODO save state to parcel
-		out.writeLong(id);
+		out.writeLong(_id);
 		out.writeString(title);
 		out.writeString(isbn);
 		out.writeString(price);
@@ -70,15 +70,11 @@ public class Book implements Parcelable {
 
 	// TODO find out why it breaks inside this constructor. Also why only the second author appears in the listView
 	public Book(Cursor cursor) {
-	    // this for some reason causes the crash prematurely
-
-        Log.d("Cursor info: ", " " + cursor.getColumnCount());
-
 		// TODO init from cursor
+        // TODO do I need to set the ID
 		title = BookContract.getTitle(cursor);
 		//TODO call the authors constructor?
 		String[] in = BookContract.getAuthors(cursor);
-
 		authors = new Author[in.length];
 		for (int i = 0; i < in.length; i++) {
 			authors[i] = new Author(in[i]);
@@ -88,8 +84,7 @@ public class Book implements Parcelable {
 	}
 
 	// TODO should I use a standard constructor for book? Or just insert it to the db?
-	public Book(int id, String title, Author[] author, String isbn, String price) {
-		this.id = id;
+	public Book(String title, Author[] author, String isbn, String price) {
 		this.title = title;
 		this.authors = author;
 		this.isbn = isbn;
@@ -99,7 +94,7 @@ public class Book implements Parcelable {
 	public void writeToProvider(ContentValues out) {
 		// TODO write to ContentValues
         BookContract.putTitle(out, this.title);
-        BookContract.putAuthors(out, this.title);
+        BookContract.putAuthors(out, this.getAuthors());
         BookContract.putISBN(out, this.isbn);
         BookContract.putPrice(out, this.price);
 	}
@@ -112,6 +107,14 @@ public class Book implements Parcelable {
 		for (int i = 0; i < authors.length; i++) {
 		    Log.d("Author is : ", " " + authors[i].toString());
 		}
+	}
+
+	public String getAuthors() {
+		String result = " ";
+		for (int i = 0; i < authors.length; i++) {
+			result += authors[i] + " ";
+		}
+		return result;
 	}
 
 }

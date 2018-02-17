@@ -46,6 +46,7 @@ public class MainActivity extends Activity {
 	private ArrayList<Book> shoppingCart;
 	private SimpleCursorAdapter simpleCursorAdapter;
 	private ListView listView;
+	private Cursor cursor;
     // TODO add options for the simpleCursorAdapter
 	private String[] from = new String[] {
             BookContract.TITLE,
@@ -64,6 +65,7 @@ public class MainActivity extends Activity {
 		// TODO check if there is saved UI state, and if so, restore it (i.e. the cart contents)
 		if(savedInstanceState != null) {
 		    // TODO restore the database
+            Log.d("Here", "here");
 			shoppingCart = savedInstanceState.getParcelableArrayList(CART_CONTENTS);
 		}
 		// TODO Set the layout (use cart.xml layout)
@@ -79,6 +81,16 @@ public class MainActivity extends Activity {
         listView = (ListView) findViewById(android.R.id.list);
         listView.setAdapter(simpleCursorAdapter);
         registerForContextMenu(listView);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                // View book logic
+                Intent viewIntent = new Intent(MainActivity.this, ViewBookActivity.class);
+                Book toView = dba.fetchBook(position + 1);
+                toView._id = position;
+                viewIntent.putExtra(BOOK_VIEW_KEY, toView);
+                startActivity(viewIntent);
+            }
+        });
     }
 
 	@Override
@@ -103,8 +115,9 @@ public class MainActivity extends Activity {
 
             // TODO CHECKOUT provide the UI for checking out
             case R.id.checkout:
-            	Intent checkoutIntent = new Intent(this, CheckoutActivity.class);
-            	startActivityForResult(checkoutIntent, CHECKOUT_REQUEST);
+                Intent checkoutIntent = new Intent(this, CheckoutActivity.class);
+                checkoutIntent.putExtra(CART_SIZE, simpleCursorAdapter.getCount());
+                startActivityForResult(checkoutIntent, CHECKOUT_REQUEST);
                 break;
 
             default:
@@ -135,6 +148,9 @@ public class MainActivity extends Activity {
                 // CHECKOUT: empty the shopping cart.
                 if(resultCode == RESULT_OK) {
                     dba.deleteAll();
+                    simpleCursorAdapter.swapCursor(cursor);
+                    simpleCursorAdapter.notifyDataSetChanged();
+                    dba.open();
                 } else if(resultCode == RESULT_CANCELED) {
                     break;
                 }
@@ -157,14 +173,18 @@ public class MainActivity extends Activity {
         switch (item.getItemId()) {
             case R.id.view_book:
                 Intent viewIntent = new Intent(this, ViewBookActivity.class);
-                Book toView = dba.fetchBook(info.id);
-                Log.d("Book info: ", toView.toString());
+                Book toView = dba.fetchBook(info.position + 1);
+                toView._id = info.position;
                 viewIntent.putExtra(BOOK_VIEW_KEY, toView);
                 startActivity(viewIntent);
                 return true;
             case R.id.delete_book:
-                Book toDelete = dba.fetchBook(info.id);
-                dba.delete(toDelete);
+                Book toDelete = dba.fetchBook(info.position);
+                toDelete._id = info.position + 1;
+                boolean state = dba.delete(toDelete);
+                Log.i("State", String.valueOf(state));
+                simpleCursorAdapter.changeCursor(dba.fetchAllBooks());
+                simpleCursorAdapter.notifyDataSetChanged();
                 return true;
             default:
                 return super.onContextItemSelected(item);
@@ -176,14 +196,12 @@ public class MainActivity extends Activity {
     @Override
     public void onDestroy() {
 	    dba.close();
-	    dba.deleteAll();
         super.onDestroy();
 	}
 	
 	@Override
 	public void onSaveInstanceState(Bundle savedInstanceState) {
 		// TODO save the shopping cart contents (which should be a list of parcelables).
-        savedInstanceState.putParcelableArrayList(CART_CONTENTS, shoppingCart);
         super.onSaveInstanceState(savedInstanceState);
 	}
 	

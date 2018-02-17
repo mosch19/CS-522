@@ -120,7 +120,6 @@ public class CartDbAdapter {
     public Book fetchBook(long rowId) {
         // TODO
         String fetch = "SELECT * FROM " + BOOK_TABLE;
-        Log.d("Row ID: ", " " + Long.toString(rowId));
         String[] projection = { BookContract._ID, BookContract.TITLE, BookContract.AUTHORS, BookContract.ISBN, BookContract.PRICE };
         String selection = BookContract._ID + "=" + Long.toString(rowId);
 //        return new Book(db.rawQuery(fetch, null));
@@ -136,24 +135,24 @@ public class CartDbAdapter {
         ContentValues contentValues = new ContentValues();
         ContentValues authorValues = new ContentValues();
         book.writeToProvider(contentValues);
-        long row = db.insert(BOOK_TABLE, null, contentValues);
+        book._id = db.insert(BOOK_TABLE, null, contentValues);
+
         for (int i = 0; i < book.authors.length; i++) {
-            book.authors[i].FK = row;
-            Log.d("Persist: ", " " + book.authors[i].toString());
+            book.authors[i].FK = book._id;
             book.authors[i].writeToProvider(authorValues);
             long res= db.insert(AUTHOR_TABLE, null, authorValues);
-            Log.d("ID Number: ", " " + res);
             authorValues.clear();
         }
-        return row;
+        Log.d("In persist", " " + book._id);
+        return book._id;
     }
 
     // TODO need to get a book id
     public boolean delete(Book book) {
-        db.delete(BOOK_TABLE,
-                BookContract._ID + "=" + book.id,
-                null);
-        return false;
+        Log.d("Book ID: ", " " + book._id);
+        return db.delete(BOOK_TABLE,
+                BookContract._ID + "=" + book._id,
+                null) > 0;
     }
 
     public boolean deleteAll() {

@@ -70,7 +70,8 @@ public class AddBookActivity extends Activity {
 		// TODO no longer parse this way
 		Author[] authors = Utils.parseAuthors(search_author.getText().toString());
 		String isbn = search_isbn.getText().toString();
-		return new Book(1, title, authors, isbn, "0");
+
+		return new Book(title, authors, isbn, "0");
 	}
 
 }
