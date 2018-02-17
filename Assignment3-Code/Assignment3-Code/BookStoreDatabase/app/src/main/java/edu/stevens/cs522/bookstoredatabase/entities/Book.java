@@ -71,12 +71,9 @@ public class Book implements Parcelable {
 	// TODO find out why it breaks inside this constructor. Also why only the second author appears in the listView
 	public Book(Cursor cursor) {
 	    // this for some reason causes the crash prematurely
-        if (cursor.isNull(0)) {
-            // So the cursor is not null... why are the get methods failing...
-            Log.d("The cursor is null ", " haha what");
-        }
+
         Log.d("Cursor info: ", " " + cursor.getColumnCount());
-	    Log.d("Inside cursor ", "Hallo");
+
 		// TODO init from cursor
 		title = BookContract.getTitle(cursor);
 		//TODO call the authors constructor?
@@ -108,7 +105,7 @@ public class Book implements Parcelable {
 	}
 
     public String toString() {
-	    return this.title + " " + this.isbn;
+	    return this.title + " by " + this.getFirstAuthor() + " ref by " + this.isbn + " costs " + this.price;
     }
 
     public void printAuthors() {

@@ -119,8 +119,11 @@ public class CartDbAdapter {
     // TODO link to book constructor for cursors
     public Book fetchBook(long rowId) {
         // TODO
+        String fetch = "SELECT * FROM " + BOOK_TABLE;
+        Log.d("Row ID: ", " " + Long.toString(rowId));
         String[] projection = { BookContract._ID, BookContract.TITLE, BookContract.AUTHORS, BookContract.ISBN, BookContract.PRICE };
         String selection = BookContract._ID + "=" + Long.toString(rowId);
+//        return new Book(db.rawQuery(fetch, null));
         return new Book(db.query(BOOK_TABLE,
                         projection,
                         selection,
@@ -138,7 +141,8 @@ public class CartDbAdapter {
             book.authors[i].FK = row;
             Log.d("Persist: ", " " + book.authors[i].toString());
             book.authors[i].writeToProvider(authorValues);
-            db.insert(AUTHOR_TABLE, null, authorValues);
+            long res= db.insert(AUTHOR_TABLE, null, authorValues);
+            Log.d("ID Number: ", " " + res);
             authorValues.clear();
         }
         return row;

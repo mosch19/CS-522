@@ -158,6 +158,7 @@ public class MainActivity extends Activity {
             case R.id.view_book:
                 Intent viewIntent = new Intent(this, ViewBookActivity.class);
                 Book toView = dba.fetchBook(info.id);
+                Log.d("Book info: ", toView.toString());
                 viewIntent.putExtra(BOOK_VIEW_KEY, toView);
                 startActivity(viewIntent);
                 return true;

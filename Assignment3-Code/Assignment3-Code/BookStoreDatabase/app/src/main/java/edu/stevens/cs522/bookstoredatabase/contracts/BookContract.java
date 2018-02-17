@@ -19,15 +19,25 @@ public class BookContract implements BaseColumns {
     public static final String ISBN = "isbn";
     public static final String PRICE = "price";
 
-    private static int titleColumn = 1;
-    private static int authorsColumn = titleColumn + 1;
-    private static int isbnColumn = authorsColumn + 1;
-    private static int priceColumn = isbnColumn + 1;
+    private static int titleColumn = -1;
+    private static int authorsColumn = -1;
+    private static int isbnColumn = -1;
+    private static int priceColumn = -1;
+
 
     public static String getTitle(Cursor cursor) {
-        Log.d("Inside get title: ", "haha what");
+        Log.d("Title column pre if: ", " " + titleColumn);
         if (titleColumn < 0) {
             titleColumn =  cursor.getColumnIndexOrThrow(TITLE);;
+            Log.d("Title column: ", " " + titleColumn);
+            Log.d("Rows: ", " " + cursor.getCount());
+        }
+        if(cursor != null) {
+            cursor.moveToFirst();
+            String id = cursor.getString(0);
+            String id2 = cursor.getString(1);
+            Log.d("One: ", id);
+            Log.d("Two: ", id2);
         }
         return cursor.getString(titleColumn);
     }
@@ -57,6 +67,8 @@ public class BookContract implements BaseColumns {
         values.put(TITLE, title);
     }
 
+    public static void putAuthors(ContentValues values, String authors) { values.put(AUTHORS, authors); }
+
     public static void putISBN(ContentValues values, String isbn) { values.put(ISBN, isbn); }
 
     public static void putPrice(ContentValues values, String price) { values.put(PRICE, price); }
@@ -72,11 +84,6 @@ public class BookContract implements BaseColumns {
     public static String[] readStringArray(String in) {
         return SEPARATOR.split(in);
     }
-
-    public static void putAuthors(ContentValues values, String authors) {
-        values.put(AUTHORS, authors);
-    }
-
 
     // TODO complete definitions of other getter and setter operations
 
