@@ -185,7 +185,8 @@ public class ChatServer extends Activity implements OnClickListener {
 		DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 
 		try {
-			
+		    Log.d("In the try...", "here");
+			serverSocket.setSoTimeout(2000);
 			serverSocket.receive(receivePacket);
 			Log.i(TAG, "Received a packet");
 
@@ -209,7 +210,7 @@ public class ChatServer extends Activity implements OnClickListener {
 
             message.senderId = messagesDbAdapter.persist(sender);
             messagesDbAdapter.persist(message);
-
+            messagesAdapter.changeCursor(messagesDbAdapter.fetchAllMessages());
             messagesAdapter.notifyDataSetChanged();
 
 		} catch (Exception e) {
