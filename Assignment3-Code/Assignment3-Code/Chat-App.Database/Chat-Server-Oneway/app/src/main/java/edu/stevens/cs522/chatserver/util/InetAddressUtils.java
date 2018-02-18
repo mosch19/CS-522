@@ -5,7 +5,6 @@ import android.database.Cursor;
 import android.os.Parcel;
 
 import com.google.common.net.InetAddresses;
-
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;

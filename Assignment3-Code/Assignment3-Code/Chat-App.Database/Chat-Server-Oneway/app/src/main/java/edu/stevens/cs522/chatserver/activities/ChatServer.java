@@ -34,6 +34,7 @@ import java.util.Date;
 
 import edu.stevens.cs522.chatserver.R;
 import edu.stevens.cs522.chatserver.contracts.MessageContract;
+import edu.stevens.cs522.chatserver.contracts.PeerContract;
 import edu.stevens.cs522.chatserver.databases.MessagesDbAdapter;
 import edu.stevens.cs522.chatserver.entities.Message;
 import edu.stevens.cs522.chatserver.entities.Peer;
@@ -65,7 +66,16 @@ public class ChatServer extends Activity implements OnClickListener {
 
     private MessagesDbAdapter messagesDbAdapter;
 
+    private Cursor messageCursor;
+
     private Button next;
+
+    private String[] from = new String[] {
+            MessageContract.MESSAGE_TEXT
+    };
+    private int[] to = new int[] {
+            android.R.id.text1
+    };
 
     /*
      * Use to configure the app (user name and port)
@@ -108,13 +118,22 @@ public class ChatServer extends Activity implements OnClickListener {
         setContentView(R.layout.messages);
 
         // TODO open the database using the database adapter
+        messagesDbAdapter = new MessagesDbAdapter(this);
+        messagesDbAdapter.open();
 
         // TODO query the database using the database adapter, and manage the cursor on the messages thread
+        messageCursor = messagesDbAdapter.fetchAllMessages();
 
         // TODO use SimpleCursorAdapter to display the messages received.
+        messagesAdapter = new SimpleCursorAdapter(this, R.layout.messages, messageCursor, from, to);
+
+        // TODO set the adapter for the list view
+        messageList = (ListView) findViewById(R.layout.messages);
+        messageList.setAdapter(messagesAdapter);
 
         // TODO bind the button for "next" to this activity as listener
-
+        next = (Button) findViewById(R.id.next);
+        next.setOnClickListener(this);
 	}
 
     public void onDestroy() {
@@ -127,7 +146,8 @@ public class ChatServer extends Activity implements OnClickListener {
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
         // TODO inflate a menu with PEERS and SETTINGS options
-
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.chatserver_menu, menu);
         return true;
     }
 
@@ -138,6 +158,8 @@ public class ChatServer extends Activity implements OnClickListener {
 
             // TODO PEERS provide the UI for viewing list of peers
             case R.id.peers:
+                Intent viewPeers = new Intent(this, ViewPeersActivity.class);
+                startActivity(viewPeers);
                 break;
 
             // TODO SETTINGS provide the UI for settings
