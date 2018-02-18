@@ -1,5 +1,6 @@
 package edu.stevens.cs522.chatserver.databases;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
@@ -46,9 +47,7 @@ public class MessagesDbAdapter {
                 + PeerContract.TIMESTAMP + " text not null, "
                 + PeerContract.ADDRESS + " text not null, "
                 + PeerContract.PORT + " integer not null "
-                + ");"
-                + "CREATE INDEX MessagesPeerIndex ON Messages(peer_fk);"
-                + "CREATE INDEX PeerNameIndex ON Peers(name);";
+                + ");";
 
         private static final String MESSAGE_CREATE =
             "create table " + MESSAGE_TABLE + " ("
@@ -57,7 +56,7 @@ public class MessagesDbAdapter {
             + MessageContract.TIMESTAMP + " text not null, "
             + MessageContract.SENDER + " text not null, "
             + MessageContract.SENDER_ID + " integer not null "
-            + ");";
+            + ")";
 
         private static final String PEER_CREATE =
                 "create table " + PEER_TABLE + " ("
@@ -68,6 +67,12 @@ public class MessagesDbAdapter {
                 + PeerContract.PORT + " integer not null "
                 + ")";
 
+        private static final String INDEX =
+                "CREATE INDEX MessagesPeerIndex ON Messages(SENDER_ID)";
+
+        private static final String INDEX2 =
+                "CREATE INDEX PeerNameIndex ON view_peers(name)";
+
         public DatabaseHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
             super(context, name, factory, version);
         }
@@ -75,7 +80,10 @@ public class MessagesDbAdapter {
         @Override
         public void onCreate(SQLiteDatabase db) {
             // TODO
-            db.execSQL(DATABASE_CREATE);
+            db.execSQL(MESSAGE_CREATE);
+            db.execSQL(PEER_CREATE);
+            db.execSQL(INDEX);
+            db.execSQL(INDEX2);
         }
 
         @Override
@@ -100,26 +108,36 @@ public class MessagesDbAdapter {
 
     public Cursor fetchAllMessages() {
         // TODO
-        return null;
+        String[] projection = { MessageContract._ID, MessageContract.MESSAGE_TEXT, MessageContract.TIMESTAMP, MessageContract.SENDER, MessageContract.SENDER_ID };
+        return db.query(MESSAGE_TABLE, projection, null, null, null, null, null);
     }
 
     public Cursor fetchAllPeers() {
         // TODO
-        return null;
+        String[] projection = { PeerContract._ID, PeerContract.NAME, PeerContract.TIMESTAMP, PeerContract.ADDRESS, PeerContract.PORT };
+        String selection = "???";
+        return db.query(PEER_TABLE, projection, null, null, null, null, null);
     }
 
     public Peer fetchPeer(long peerId) {
         // TODO
-        return null;
+        String[] projection = { PeerContract._ID, PeerContract.NAME, PeerContract.TIMESTAMP, PeerContract.ADDRESS, PeerContract.PORT };
+        String selection = PeerContract._ID + "=" + Long.toString(peerId);
+        return new Peer(db.query(PEER_TABLE, projection, selection, null, null, null, null));
     }
 
     public Cursor fetchMessagesFromPeer(Peer peer) {
         // TODO
-        return null;
+        String[] projection = { MessageContract._ID, MessageContract.MESSAGE_TEXT, MessageContract.TIMESTAMP, MessageContract.SENDER, MessageContract.SENDER_ID };
+        String selection = MessageContract.SENDER_ID + "=" + Long.toString(peer.id);
+        return db.query(MESSAGE_TABLE, projection, selection, null, null, null, null);
     }
 
     public void persist(Message message) throws SQLException {
         // TODO
+        ContentValues contentValues = new ContentValues();
+        message.writeToProvider(contentValues);
+        message.id = db.insert(MESSAGE_TABLE, null, contentValues);
     }
 
     /**
@@ -130,7 +148,11 @@ public class MessagesDbAdapter {
      */
     public long persist(Peer peer) throws SQLException {
         // TODO
-        throw new SQLException("Failed to add peer "+peer.name);
+        ContentValues contentValues = new ContentValues();
+        peer.writeToProvider(contentValues);
+        return peer.id = db.insert(PEER_TABLE, null, contentValues);
+        // TODO what is this throw statement for?
+        //throw new SQLException("Failed to add peer "+peer.name);
     }
 
     public void close() {

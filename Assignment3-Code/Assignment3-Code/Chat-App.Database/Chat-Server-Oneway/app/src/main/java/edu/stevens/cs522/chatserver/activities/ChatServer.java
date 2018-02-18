@@ -71,10 +71,12 @@ public class ChatServer extends Activity implements OnClickListener {
     private Button next;
 
     private String[] from = new String[] {
+            MessageContract.SENDER,
             MessageContract.MESSAGE_TEXT
     };
     private int[] to = new int[] {
-            android.R.id.text1
+            android.R.id.text1,
+            android.R.id.text2
     };
 
     /*
@@ -125,10 +127,10 @@ public class ChatServer extends Activity implements OnClickListener {
         messageCursor = messagesDbAdapter.fetchAllMessages();
 
         // TODO use SimpleCursorAdapter to display the messages received.
-        messagesAdapter = new SimpleCursorAdapter(this, R.layout.messages, messageCursor, from, to);
+        messagesAdapter = new SimpleCursorAdapter(this, android.R.layout.simple_expandable_list_item_2, messageCursor, from, to);
 
         // TODO set the adapter for the list view
-        messageList = (ListView) findViewById(R.layout.messages);
+        messageList = (ListView) findViewById(R.id.message_list);
         messageList.setAdapter(messagesAdapter);
 
         // TODO bind the button for "next" to this activity as listener
@@ -138,6 +140,7 @@ public class ChatServer extends Activity implements OnClickListener {
 
     public void onDestroy() {
         super.onDestroy();
+        messageCursor.close();
         messagesDbAdapter.close();
         closeSocket();
     }
