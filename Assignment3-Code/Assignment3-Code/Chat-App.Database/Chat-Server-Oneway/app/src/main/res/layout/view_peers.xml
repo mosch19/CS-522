@@ -13,10 +13,4 @@
         android:transcriptMode="alwaysScroll" >
     </ListView>
 
-    <Button
-        android:id="@+id/next"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/next_label" />
-
 </LinearLayout>

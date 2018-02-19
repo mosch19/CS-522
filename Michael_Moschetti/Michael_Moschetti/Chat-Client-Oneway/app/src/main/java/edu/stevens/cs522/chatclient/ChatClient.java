@@ -12,6 +12,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Date;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -128,11 +129,13 @@ public class ChatClient extends Activity implements OnClickListener {
 			
 			byte[] sendData;  // Combine sender and message text; default encoding is UTF-8;
 
+			Date now = new Date(System.currentTimeMillis());
+
 			// TODO get data from UI
             messageText = findViewById(R.id.message_text);
             destinationHost = findViewById(R.id.destination_host);
             destinationPort = findViewById(R.id.destination_port);
-			String message = DEFAULT_CLIENT_NAME + ": " + messageText.getText().toString();
+			String message = DEFAULT_CLIENT_NAME + ":" + now.toString() + ":" + messageText.getText().toString();
             sendData = message.getBytes("UTF-8");
 
             // had trouble getting the get bytes on the same line as the string
