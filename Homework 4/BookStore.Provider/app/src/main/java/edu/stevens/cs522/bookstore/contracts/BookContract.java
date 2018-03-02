@@ -52,8 +52,6 @@ public class BookContract implements BaseColumns {
 
     public static final String CONTENT_PATH_ITEM = CONTENT_PATH(CONTENT_URI("#"));
 
-
-
     public static final String ID = _ID;
 
     public static final String TITLE = "title";
@@ -102,6 +100,9 @@ public class BookContract implements BaseColumns {
         return readStringArray(cursor.getString(authorColumn));
     }
 
+    public static void putAuthors(ContentValues values, String authors) {
+        values.put(AUTHORS, authors);
+    }
 
     // TODO complete definitions of other getter and setter operations
     private static int isbnColumn = -1;

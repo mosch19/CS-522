@@ -28,7 +28,7 @@ public class ViewBookActivity extends Activity {
 
 		// TODO get book as parcelable intent extra and populate the UI with book details.
 		Intent viewIntent = getIntent();
-		Book book = viewIntent.getParcelableArrayExtra(MainActivity.BOOK_VIEW_KEY);
+		Book book = viewIntent.getParcelableExtra(MainActivity.BOOK_VIEW_KEY);
 
 		TextView viewTitle = (TextView) findViewById(R.id.view_title);
 		viewTitle.setText(book.title);

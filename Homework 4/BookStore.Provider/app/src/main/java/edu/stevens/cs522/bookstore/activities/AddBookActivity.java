@@ -9,7 +9,9 @@ import android.view.MenuItem;
 import android.widget.EditText;
 
 import edu.stevens.cs522.bookstore.R;
+import edu.stevens.cs522.bookstore.entities.Author;
 import edu.stevens.cs522.bookstore.entities.Book;
+import edu.stevens.cs522.bookstore.entities.Utils;
 
 
 public class AddBookActivity extends Activity {
@@ -64,7 +66,7 @@ public class AddBookActivity extends Activity {
 		EditText search_ISBN = (EditText) findViewById(R.id.search_isbn);
 
 		String title = search_title.getText().toString();
-		String authors = search_authors.getText().toString();
+		Author[] authors = Utils.parseAuthors(search_authors.getText().toString());
 		String isbn = search_ISBN.getText().toString();
 
 		return new Book(title, authors, isbn, "0");

@@ -10,6 +10,8 @@ import android.widget.Toast;
 
 import edu.stevens.cs522.bookstore.R;
 
+import static edu.stevens.cs522.bookstore.activities.MainActivity.CART_SIZE;
+
 
 public class CheckoutActivity extends Activity {
 

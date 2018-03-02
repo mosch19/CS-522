@@ -10,12 +10,17 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteDatabase.CursorFactory;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+import android.util.Log;
 
 import edu.stevens.cs522.bookstore.contracts.AuthorContract;
 import edu.stevens.cs522.bookstore.contracts.BookContract;
+import edu.stevens.cs522.bookstore.entities.Author;
+import edu.stevens.cs522.bookstore.entities.Utils;
 
+import static edu.stevens.cs522.bookstore.contracts.BookContract.AUTHORS;
 import static edu.stevens.cs522.bookstore.contracts.BookContract.CONTENT_PATH;
 import static edu.stevens.cs522.bookstore.contracts.BookContract.CONTENT_PATH_ITEM;
+import static edu.stevens.cs522.bookstore.contracts.BookContract.getId;
 
 public class BookProvider extends ContentProvider {
     public BookProvider() {
@@ -39,13 +44,13 @@ public class BookProvider extends ContentProvider {
             "create table " + BOOKS_TABLE + " ("
             + BookContract._ID + " integer primary key, "
             + BookContract.TITLE + " text not null, "
-            + BookContract.AUTHORS + " text not null, "
+            + AUTHORS + " text not null, "
             + BookContract.ISBN + " text not null, "
             + BookContract.PRICE + " text "
             + ")";
 
     private static final String AUTHOR_CREATE =
-            "create table " + AUTHOR_TABLE + " ("
+            "create table " + AUTHORS_TABLE + " ("
             + AuthorContract._ID + " integer primary key, "
             + AuthorContract.FK + " integer not null, "
             + AuthorContract.FIRST_NAME + " text not null, "
@@ -105,11 +110,9 @@ public class BookProvider extends ContentProvider {
         // at the given URI.
         switch(uriMatcher.match(uri)) {
             case ALL_ROWS:
-                return "x";
-//                return ContentType("book");
+                return BookContract.CONTENT_PATH;
             case SINGLE_ROW:
-                return "x";
-//                  return contentItemType("book");
+                return BookContract.CONTENT_PATH_ITEM;
             default:
                 throw new IllegalArgumentException("Unsupported URI: " + uri);
         }
@@ -124,7 +127,22 @@ public class BookProvider extends ContentProvider {
                 // TODO: Implement this to handle requests to insert a new row.
                 // Make sure to notify any observers
                 Uri instanceUri = BookContract.CONTENT_URI(ALL_ROWS);
+
+                String authorCluster = values.get(AUTHORS).toString();
+                values.remove(AUTHORS);
+
                 db.insert(BOOKS_TABLE, null, values);
+
+                ContentValues authorValues = new ContentValues();
+
+                Log.d("Authors", authorCluster);
+
+                Author[] authors = Utils.parseAuthors(authorCluster);
+                for (Author x : authors) {
+                    x.writeToProvider(authorValues);
+                    db.insert(AUTHORS_TABLE, null, authorValues);
+                }
+
                 ContentResolver cr = getContext().getContentResolver();
                 cr.notifyChange(instanceUri, null);
 
@@ -142,13 +160,34 @@ public class BookProvider extends ContentProvider {
     public Cursor query(Uri uri, String[] projection, String selection,
                         String[] selectionArgs, String sortOrder) {
         SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        String joinQ = "SELECT "
+                + BOOKS_TABLE + "."
+                + BookContract._ID + ", "
+                + BookContract.TITLE + ", "
+                + BookContract.PRICE + ", "
+                + BookContract.ISBN + ", "
+                + "GROUP_CONCAT(" + AuthorContract.FIRST_NAME
+                + " || ' ' || " + AuthorContract.MIDDLE_INITIAL
+                + " || ' ' || " + AuthorContract.LAST_NAME + ", '|') "
+                + "as " + AUTHORS + " "
+                + "FROM " + BOOKS_TABLE + " JOIN "
+                + AUTHORS_TABLE +" ON "
+                + BOOKS_TABLE + "." + BookContract._ID + "=" + AUTHORS_TABLE + "." + AuthorContract.FK
+                + " GROUP BY " + BOOKS_TABLE + "." + BookContract._ID + ", "
+                + BookContract.TITLE + ", "
+                + BookContract.ISBN + ", "
+                + BookContract.PRICE;
+
         switch (uriMatcher.match(uri)) {
             case ALL_ROWS:
                 // TODO: Implement this to handle query of all books.
-                return db.query(BOOKS_TABLE, projection, selection, selectionArgs, null, null, sortOrder);
+                return db.rawQuery(joinQ, null);
             case SINGLE_ROW:
                 // TODO: Implement this to handle query of a specific book.
-                return db.query(BOOKS_TABLE, projection, selection, selectionArgs, null, null, sortOrder);
+                String[] p = { BookContract._ID, BookContract.TITLE, AUTHORS, BookContract.ISBN, BookContract.PRICE };
+                String s = BookContract._ID + "=" + getId(uri);
+                return db.query(BOOKS_TABLE, p, s, null, null, null, null);
 //                throw new UnsupportedOperationException("Not yet implemented");
             default:
                 throw new IllegalStateException("insert: bad case");
@@ -169,7 +208,9 @@ public class BookProvider extends ContentProvider {
             case ALL_ROWS:
                 return db.delete(BOOKS_TABLE, selection, selectionArgs);
             case SINGLE_ROW:
-                return db.delete(BOOKS_TABLE, selection, selectionArgs);
+                return db.delete(BOOKS_TABLE,
+                        BookContract._ID + "=" + getId(uri),
+                        null);
             default:
                 throw new IllegalArgumentException("Unsupported URI: " + uri);
         }

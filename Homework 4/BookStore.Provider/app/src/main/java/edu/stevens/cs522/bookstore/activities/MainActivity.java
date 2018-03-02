@@ -2,8 +2,11 @@ package edu.stevens.cs522.bookstore.activities;
 
 import android.app.Activity;
 import android.app.LoaderManager;
+import android.content.ContentValues;
+import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.ActionMode;
 import android.view.Menu;
@@ -22,6 +25,7 @@ import java.util.Set;
 import edu.stevens.cs522.bookstore.R;
 import edu.stevens.cs522.bookstore.contracts.BookContract;
 import edu.stevens.cs522.bookstore.entities.Book;
+import edu.stevens.cs522.bookstore.providers.BookProvider;
 import edu.stevens.cs522.bookstore.util.BookAdapter;
 
 public class MainActivity extends Activity implements OnItemClickListener, AbsListView.MultiChoiceModeListener, LoaderManager.LoaderCallbacks {
@@ -29,6 +33,10 @@ public class MainActivity extends Activity implements OnItemClickListener, AbsLi
 	// Use this when logging errors and warnings.
 	@SuppressWarnings("unused")
 	private static final String TAG = MainActivity.class.getCanonicalName();
+
+	public static final String CART_SIZE = "cartSize";
+
+	public static final String BOOK_VIEW_KEY = "book_view";
 	
 	// These are request codes for subactivity request calls
 	static final private int ADD_REQUEST = 1;
@@ -39,6 +47,8 @@ public class MainActivity extends Activity implements OnItemClickListener, AbsLi
     static final private int LOADER_ID = 1;
 
     BookAdapter bookAdapter;
+
+    BookProvider bookProvider;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -52,14 +62,20 @@ public class MainActivity extends Activity implements OnItemClickListener, AbsLi
         setContentView(R.layout.cart);
         // Use a custom cursor adapter to display an empty (null) cursor.
         bookAdapter = new BookAdapter(this, null);
+        bookProvider = new BookProvider();
         ListView lv = (ListView) findViewById(android.R.id.list);
         lv.setAdapter(bookAdapter);
 
         // TODO set listeners for item selection and multi-choice CAB
-
+        lv.setOnItemLongClickListener (new AdapterView.OnItemLongClickListener() {
+            public boolean onItemLongClick(AdapterView parent, View view, int position, long id) {
+                // Add stuff for deleting here
+                return true;
+            }
+        });
 
         // TODO use loader manager to initiate a query of the database
-
+        getLoaderManager().initLoader(0, null, this);
     }
 
 	@Override
@@ -107,6 +123,10 @@ public class MainActivity extends Activity implements OnItemClickListener, AbsLi
                 // It is okay to do this on the main thread for BookStoreWithContentProvider
                 if(resultCode == RESULT_OK) {
                     Book result = intent.getParcelableExtra(AddBookActivity.BOOK_RESULT_KEY);
+                    ContentValues resultVal = new ContentValues();
+                    result.writeToProvider(resultVal);
+                    uri = bookProvider.CONTENT_PATH;
+                    bookProvider.insert();
                 }
                 break;
             case CHECKOUT_REQUEST:
@@ -133,6 +153,11 @@ public class MainActivity extends Activity implements OnItemClickListener, AbsLi
 	@Override
 	public Loader onCreateLoader(int id, Bundle args) {
 		// TODO use a CursorLoader to initiate a query on the database
+        Uri baseuri;
+        String selection = "here";
+        String projection = "here";
+        return new CursorLoader(getActivity(), baseUri,
+                projection, selection, null, null);
 		return null;
 	}
 
@@ -167,7 +192,8 @@ public class MainActivity extends Activity implements OnItemClickListener, AbsLi
     @Override
     public boolean onCreateActionMode(ActionMode mode, Menu menu) {
         // TODO inflate the menu for the CAB
-
+        MenuInflater inflater = mode.getMenuInflater();
+        inflater.inflate(R.menu.context_menu, menu);
         selected = new HashSet<Long>();
         return true;
     }
@@ -186,6 +212,10 @@ public class MainActivity extends Activity implements OnItemClickListener, AbsLi
         switch(item.getItemId()) {
             case R.id.delete:
                 // TODO delete the selected books
+                Uri baseuri = uri;
+                String selection = "";
+                String projection = "";
+                bookProvider.delete();
                 return true;
             default:
                 return false;
