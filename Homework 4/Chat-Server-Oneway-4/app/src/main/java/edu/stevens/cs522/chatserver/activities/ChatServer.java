@@ -11,13 +11,20 @@
 package edu.stevens.cs522.chatserver.activities;
 
 import android.app.Activity;
+import android.app.LoaderManager;
+import android.content.ContentValues;
+import android.content.CursorLoader;
 import android.content.Intent;
+import android.content.Loader;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -31,10 +38,12 @@ import java.net.InetAddress;
 import java.util.Date;
 
 import edu.stevens.cs522.chatserver.R;
+import edu.stevens.cs522.chatserver.contracts.MessageContract;
+import edu.stevens.cs522.chatserver.contracts.PeerContract;
 import edu.stevens.cs522.chatserver.entities.Message;
 import edu.stevens.cs522.chatserver.entities.Peer;
 
-public class ChatServer extends Activity implements OnClickListener {
+public class ChatServer extends Activity implements OnClickListener, LoaderManager.LoaderCallbacks {
 
     // TODO add loader callbacks
 
@@ -48,7 +57,9 @@ public class ChatServer extends Activity implements OnClickListener {
 	/*
 	 * True as long as we don't get socket errors
 	 */
-	private boolean socketOK = true; 
+	private boolean socketOK = true;
+
+	private static final int LOADER_ID = 1;
 
     /*
      * UI for displayed received messages
@@ -58,6 +69,10 @@ public class ChatServer extends Activity implements OnClickListener {
 	private ListView messageList;
 
     private SimpleCursorAdapter messagesAdapter;
+
+    private String[] from = {MessageContract.SENDER, MessageContract.MESSAGE_TEXT};
+
+    private int[] to = {android.R.id.text1, android.R.id.text2};
 
     private Button next;
 
@@ -102,12 +117,15 @@ public class ChatServer extends Activity implements OnClickListener {
         setContentView(R.layout.messages);
 
         // TODO use SimpleCursorAdapter to display the messages received.
+        messagesAdapter = new SimpleCursorAdapter(this, android.R.layout.simple_expandable_list_item_2, null, from, to);
 
         // TODO bind the button for "next" to this activity as listener
+        next = (Button) findViewById(R.id.next);
+        next.setOnClickListener(this);
 
         // TODO initiate a query for all messages, by initializing a loader via the loader manager
-
-
+        LoaderManager loadermanager = getLoaderManager();
+        loadermanager.initLoader(0, null, this);
 	}
 
     public void onDestroy() {
@@ -119,7 +137,8 @@ public class ChatServer extends Activity implements OnClickListener {
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
         // TODO inflate a menu with PEERS and SETTINGS options
-
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.chatserver_menu, menu);
         return true;
     }
 
@@ -130,6 +149,8 @@ public class ChatServer extends Activity implements OnClickListener {
 
             // TODO PEERS provide the UI for viewing list of peers
             case R.id.peers:
+                Intent viewPeers = new Intent(this, ViewPeersActivity.class);
+                startActivity(viewPeers);
                 break;
 
             // TODO SETTINGS provide the UI for settings
@@ -176,14 +197,36 @@ public class ChatServer extends Activity implements OnClickListener {
 
             // TODO persist the message, and the peer if first encounter
             // OK to do this on the main thread for this assignment
+            ContentValues messages = new ContentValues();
+            ContentValues peers = new ContentValues();
+
+            message.writeToProvider(messages);
+            sender.writeToProvider(peers);
+
+            getContentResolver().insert(MessageContract.CONTENT_URI, messages);
+            getContentResolver().insert(PeerContract.CONTENT_URI, peers);
+
+            this.getLoaderManager().restartLoader(LOADER_ID, null, this);
 
 		} catch (Exception e) {
-			
 			Log.e(TAG, "Problems receiving packet: " + e.getMessage());
 			socketOK = false;
 		} 
 
 	}
+
+	@Override
+    public Loader onCreateLoader(int id, Bundle args) {
+	    return new CursorLoader(this, MessageContract.CONTENT_URI, null, null, null, null);
+    }
+
+    public void onLoadFinished(Loader loader, Object data) {
+	    messagesAdapter.swapCursor((Cursor) data);
+    }
+
+    public void onLoaderReset(Loader loader) {
+	    messagesAdapter.swapCursor(null);
+    }
 
 	/*
 	 * Close the socket before exiting application

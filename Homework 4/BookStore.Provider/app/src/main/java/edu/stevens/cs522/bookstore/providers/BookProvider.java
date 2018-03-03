@@ -15,7 +15,6 @@ import android.util.Log;
 import edu.stevens.cs522.bookstore.contracts.AuthorContract;
 import edu.stevens.cs522.bookstore.contracts.BookContract;
 import edu.stevens.cs522.bookstore.entities.Author;
-import edu.stevens.cs522.bookstore.entities.Utils;
 
 import static edu.stevens.cs522.bookstore.contracts.BookContract.AUTHORS;
 import static edu.stevens.cs522.bookstore.contracts.BookContract.CONTENT_PATH;
@@ -44,7 +43,6 @@ public class BookProvider extends ContentProvider {
             "create table " + BOOKS_TABLE + " ("
             + BookContract._ID + " integer primary key, "
             + BookContract.TITLE + " text not null, "
-            + AUTHORS + " text not null, "
             + BookContract.ISBN + " text not null, "
             + BookContract.PRICE + " text "
             + ")";
@@ -53,9 +51,7 @@ public class BookProvider extends ContentProvider {
             "create table " + AUTHORS_TABLE + " ("
             + AuthorContract._ID + " integer primary key, "
             + AuthorContract.FK + " integer not null, "
-            + AuthorContract.FIRST_NAME + " text not null, "
-            + AuthorContract.MIDDLE_INITIAL + " text, "
-            + AuthorContract.LAST_NAME + " text not null, "
+            + AuthorContract.NAME + " text not null, "
             + " FOREIGN	KEY	(FK) REFERENCES	books(_id) ON DELETE CASCADE)";
 
     // Create the constants used to differentiate between the different URI  requests.
@@ -91,6 +87,8 @@ public class BookProvider extends ContentProvider {
     public boolean onCreate() {
         // Initialize your content provider on startup.
         dbHelper = new DbHelper(getContext(), DATABASE_NAME, null, DATABASE_VERSION);
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+//        dbHelper.onUpgrade(db, 0, 0);
         return true;
     }
 
@@ -128,18 +126,17 @@ public class BookProvider extends ContentProvider {
                 // Make sure to notify any observers
                 Uri instanceUri = BookContract.CONTENT_URI(ALL_ROWS);
 
-                String authorCluster = values.get(AUTHORS).toString();
+                String auths = values.getAsString(BookContract.AUTHORS);
                 values.remove(AUTHORS);
 
-                db.insert(BOOKS_TABLE, null, values);
+                long id = db.insert(BOOKS_TABLE, null, values);
 
                 ContentValues authorValues = new ContentValues();
 
-                Log.d("Authors", authorCluster);
-
-                Author[] authors = Utils.parseAuthors(authorCluster);
-                for (Author x : authors) {
-                    x.writeToProvider(authorValues);
+                for (String x : auths.split(",")) {
+                    Author author = new Author(x);
+                    author.FK = id;
+                    author.writeToProvider(authorValues);
                     db.insert(AUTHORS_TABLE, null, authorValues);
                 }
 
@@ -160,16 +157,15 @@ public class BookProvider extends ContentProvider {
     public Cursor query(Uri uri, String[] projection, String selection,
                         String[] selectionArgs, String sortOrder) {
         SQLiteDatabase db = dbHelper.getReadableDatabase();
-
+        db.execSQL("PRAGMA foreign_keys=1;");
         String joinQ = "SELECT "
                 + BOOKS_TABLE + "."
                 + BookContract._ID + ", "
                 + BookContract.TITLE + ", "
                 + BookContract.PRICE + ", "
                 + BookContract.ISBN + ", "
-                + "GROUP_CONCAT(" + AuthorContract.FIRST_NAME
-                + " || ' ' || " + AuthorContract.MIDDLE_INITIAL
-                + " || ' ' || " + AuthorContract.LAST_NAME + ", '|') "
+                + "GROUP_CONCAT(" + AuthorContract.NAME
+                + ", '|') "
                 + "as " + AUTHORS + " "
                 + "FROM " + BOOKS_TABLE + " JOIN "
                 + AUTHORS_TABLE +" ON "
@@ -206,15 +202,16 @@ public class BookProvider extends ContentProvider {
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         switch(uriMatcher.match(uri)) {
             case ALL_ROWS:
+                dbHelper.onUpgrade(db, 0, 1);
                 return db.delete(BOOKS_TABLE, selection, selectionArgs);
             case SINGLE_ROW:
+                Log.d("Delete ID", selection);
+                db.delete(AUTHORS_TABLE, AuthorContract.ID + " = " + selection, selectionArgs);
                 return db.delete(BOOKS_TABLE,
-                        BookContract._ID + "=" + getId(uri),
-                        null);
+                        BookContract._ID + "=" + selection,
+                        selectionArgs);
             default:
                 throw new IllegalArgumentException("Unsupported URI: " + uri);
         }
-//        throw new UnsupportedOperationException("Not yet implemented");
     }
-
 }

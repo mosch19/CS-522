@@ -2,12 +2,15 @@ package edu.stevens.cs522.bookstore.activities;
 
 import android.app.Activity;
 import android.app.LoaderManager;
+import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -48,7 +51,9 @@ public class MainActivity extends Activity implements OnItemClickListener, AbsLi
 
     BookAdapter bookAdapter;
 
-    BookProvider bookProvider;
+    ContentResolver cr;
+
+    LoaderManager lm;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -62,17 +67,19 @@ public class MainActivity extends Activity implements OnItemClickListener, AbsLi
         setContentView(R.layout.cart);
         // Use a custom cursor adapter to display an empty (null) cursor.
         bookAdapter = new BookAdapter(this, null);
-        bookProvider = new BookProvider();
+        cr = getContentResolver();
+
+        lm = getLoaderManager();
+        lm.initLoader(LOADER_ID, null, this);
+
         ListView lv = (ListView) findViewById(android.R.id.list);
         lv.setAdapter(bookAdapter);
+        registerForContextMenu(lv);
 
         // TODO set listeners for item selection and multi-choice CAB
-        lv.setOnItemLongClickListener (new AdapterView.OnItemLongClickListener() {
-            public boolean onItemLongClick(AdapterView parent, View view, int position, long id) {
-                // Add stuff for deleting here
-                return true;
-            }
-        });
+        lv.setOnItemClickListener(this);
+        lv.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
+        lv.setMultiChoiceModeListener(this);
 
         // TODO use loader manager to initiate a query of the database
         getLoaderManager().initLoader(0, null, this);
@@ -100,8 +107,9 @@ public class MainActivity extends Activity implements OnItemClickListener, AbsLi
 
             // TODO CHECKOUT provide the UI for checking out
             case R.id.checkout:
+                int count = bookAdapter.getCount();
                 Intent checkoutIntent = new Intent(this, CheckoutActivity.class);
-                // TODO find out what needs to be passed in to this intent
+                checkoutIntent.putExtra(CART_SIZE, count);
                 startActivityForResult(checkoutIntent, CHECKOUT_REQUEST);
                 break;
 
@@ -125,15 +133,17 @@ public class MainActivity extends Activity implements OnItemClickListener, AbsLi
                     Book result = intent.getParcelableExtra(AddBookActivity.BOOK_RESULT_KEY);
                     ContentValues resultVal = new ContentValues();
                     result.writeToProvider(resultVal);
-                    uri = bookProvider.CONTENT_PATH;
-                    bookProvider.insert();
+                    Uri baseuri = BookContract.CONTENT_URI;
+                    cr.insert(baseuri, resultVal);
+                    this.getLoaderManager().restartLoader(LOADER_ID,null,this);
                 }
                 break;
             case CHECKOUT_REQUEST:
                 // CHECKOUT: empty the shopping cart.
                 // It is okay to do this on the main thread for BookStoreWithContentProvider
                 if(resultCode == RESULT_OK) {
-
+                    cr.delete(BookContract.CONTENT_URI, null, null);
+                    getLoaderManager().restartLoader(LOADER_ID, null, this);
                 }
                 break;
         }
@@ -153,22 +163,24 @@ public class MainActivity extends Activity implements OnItemClickListener, AbsLi
 	@Override
 	public Loader onCreateLoader(int id, Bundle args) {
 		// TODO use a CursorLoader to initiate a query on the database
-        Uri baseuri;
         String selection = "here";
-        String projection = "here";
-        return new CursorLoader(getActivity(), baseUri,
-                projection, selection, null, null);
-		return null;
+        String[] projection = {};
+        return	new	CursorLoader(this,
+                BookContract.CONTENT_URI,
+                projection,	null,	null,	null);
 	}
 
 	@Override
 	public void onLoadFinished(Loader loader, Object data) {
         // TODO populate the UI with the result of querying the provider
+        Log.i("Loader finished", "Load finished");
+        this.bookAdapter.swapCursor((Cursor) data);
 	}
 
 	@Override
 	public void onLoaderReset(Loader loader) {
         // TODO reset the UI when the cursor is empty
+        this.bookAdapter.swapCursor(null);
 	}
 
 
@@ -180,6 +192,17 @@ public class MainActivity extends Activity implements OnItemClickListener, AbsLi
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         // TODO query for this book's details, and send to ViewBookActivity
         // ok to do on main thread for BookStoreWithContentProvider
+        Intent viewIntent = new Intent(MainActivity.this, ViewBookActivity.class);
+        long x = bookAdapter.getItemId(position);
+        Log.d("IDS in item click", x + " " + id);
+        String[] projection = {};
+        String selection = "";
+        String[] selectionArgs = {};
+        // May need to add 1 since 1 indexed
+        Book toView = new Book((Cursor) bookAdapter.getItem(position));
+        toView._id = position;
+        viewIntent.putExtra(BOOK_VIEW_KEY, toView);
+        startActivity(viewIntent);
     }
 
 
@@ -193,7 +216,7 @@ public class MainActivity extends Activity implements OnItemClickListener, AbsLi
     public boolean onCreateActionMode(ActionMode mode, Menu menu) {
         // TODO inflate the menu for the CAB
         MenuInflater inflater = mode.getMenuInflater();
-        inflater.inflate(R.menu.context_menu, menu);
+        inflater.inflate(R.menu.books_cab, menu);
         selected = new HashSet<Long>();
         return true;
     }
@@ -210,12 +233,12 @@ public class MainActivity extends Activity implements OnItemClickListener, AbsLi
     @Override
     public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
         switch(item.getItemId()) {
-            case R.id.delete:
+            case R.id.delete_book:
                 // TODO delete the selected books
-                Uri baseuri = uri;
-                String selection = "";
-                String projection = "";
-                bookProvider.delete();
+                for (long x : selected) {
+                    cr.delete(BookContract.CONTENT_URI(x), x + "", null);
+                }
+                getLoaderManager().restartLoader(LOADER_ID, null, this);
                 return true;
             default:
                 return false;

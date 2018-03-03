@@ -6,9 +6,9 @@
     <!-- Menu for the main BookStore CAB. -->
 
     <item
-        android:id="@+id/delete"
+        android:id="@+id/delete_book"
         android:icon="@drawable/ic_menu_delete"
         android:showAsAction="ifRoom"
-        android:title="@string/delete"/>
+        android:title="@string/delete" />
 
 </menu>

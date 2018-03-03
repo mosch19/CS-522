@@ -30,10 +30,13 @@ public class ViewBookActivity extends Activity {
 		Intent viewIntent = getIntent();
 		Book book = viewIntent.getParcelableExtra(MainActivity.BOOK_VIEW_KEY);
 
+		authorsAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, book.getAuthorList());
+
 		TextView viewTitle = (TextView) findViewById(R.id.view_title);
 		viewTitle.setText(book.title);
 
 		ListView viewAuthors = (ListView) findViewById(R.id.view_authors);
+		viewAuthors.setAdapter(authorsAdapter);
 
 		TextView viewISBN = (TextView) findViewById(R.id.view_isbn);
         viewISBN.setText(book.isbn);

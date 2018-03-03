@@ -94,7 +94,7 @@ public class Book implements Parcelable {
     public void writeToProvider(ContentValues out) {
         // TODO write to ContentValues
         BookContract.putTitle(out, this.title);
-        BookContract.putAuthors(out, this.getAuthors());
+        BookContract.putAuthors(out, getAuthors());
         BookContract.putISBN(out, this.isbn);
         BookContract.putPrice(out, this.price);
     }
@@ -112,7 +112,17 @@ public class Book implements Parcelable {
     public String getAuthors() {
         String result = " ";
         for (int i = 0; i < authors.length; i++) {
-            result += authors[i] + " ";
+            result += authors[i] + ",";
+        }
+        // Cut off last comma
+        result = result.substring(0, result.length() - 1);
+        return result;
+    }
+
+    public String[] getAuthorList() {
+        String[] result = new String[authors.length];
+        for (int i = 0; i < authors.length; i++) {
+            result[i] = authors[i].toString();
         }
         return result;
     }

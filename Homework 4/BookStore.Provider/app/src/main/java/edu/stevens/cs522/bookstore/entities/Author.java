@@ -17,46 +17,21 @@ public class Author implements Parcelable {
 
 	public long FK;
 
-	public String firstName;
-
-	public String middleInitial;
-
-	public String lastName;
+	public String name;
 
 	public Author(String authorText) {
-		String[] name = authorText.split(" ");
-		switch (name.length) {
-			case 0:
-				firstName = lastName = "";
-				break;
-			case 1:
-				firstName = "";
-				lastName = name[0];
-				break;
-			case 2:
-				firstName = name[0];
-				lastName = name[1];
-				break;
-			default:
-				firstName = name[0];
-				middleInitial = name[1];
-				lastName = name[2];
-		}
+		this.name = authorText;
 	}
 
 	private Author(Parcel in) {
 		FK = in.readLong();
-		firstName = in.readString();
-		middleInitial = in.readString();
-		lastName = in.readString();
+		name = in.readString();
 	}
 
 	public Author() {}
 
 	public Author(Cursor cursor) {
-		firstName = AuthorContract.getFirstName(cursor);
-		middleInitial = AuthorContract.getMiddleInitial(cursor);
-		lastName = AuthorContract.getLastName(cursor);
+		name = AuthorContract.getName(cursor);
 	}
 
 	public int describeContents() {
@@ -65,9 +40,7 @@ public class Author implements Parcelable {
 
 	public void writeToParcel(Parcel out, int flags) {
 		out.writeLong(FK);
-		out.writeString(firstName);
-		out.writeString(middleInitial);
-		out.writeString(lastName);
+		out.writeString(name);
 	}
 
 	public static final Parcelable.Creator<Author> CREATOR
@@ -82,26 +55,12 @@ public class Author implements Parcelable {
 	};
 
 	public String toString() {
-		StringBuffer sb = new StringBuffer();
-		if (firstName != null && !"".equals(firstName)) {
-			sb.append(firstName);
-			sb.append(' ');
-		}
-		if (middleInitial != null && !"".equals(middleInitial)) {
-			sb.append(middleInitial);
-			sb.append(' ');
-		}
-		if (lastName != null && !"".equals(lastName)) {
-			sb.append(lastName);
-		}
-		return sb.toString();
+		return name;
 	}
 
 	public void writeToProvider(ContentValues out) {
 		AuthorContract.putFK(out, this.FK);
-		AuthorContract.putFirstName(out, this.firstName);
-		AuthorContract.putMiddleInitial(out, this.middleInitial);
-		AuthorContract.putLastName(out, this.lastName);
+		AuthorContract.putName(out, this.name);
 	}
 
 }
