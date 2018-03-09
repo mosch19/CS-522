@@ -1,10 +1,13 @@
 package edu.stevens.cs522.bookstore.managers;
 
+import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.net.Uri;
 
 import edu.stevens.cs522.bookstore.async.AsyncContentResolver;
 import edu.stevens.cs522.bookstore.async.IEntityCreator;
+import edu.stevens.cs522.bookstore.async.SimpleQueryBuilder;
 
 /**
  * Created by dduggan.
@@ -46,6 +49,13 @@ public abstract class Manager<T> {
     }
 
     // TODO Provide operations for executing queries (see lectures)
+    protected void executeSimpleQuery(Uri uri, SimpleQueryBuilder.ISimpleQueryListener<T> listener) {
+        SimpleQueryBuilder.executeQuery((Activity) context, uri, creator, listener);
+    }
+
+    protected void executeSimpleQuery(Uri uri, String[] projection, String selection, String[] selectionArgs, SimpleQueryBuilder.ISimpleQueryListener<T> listener) {
+        SimpleQueryBuilder.executeQuery((Activity) context, uri, projection, selection, selectionArgs, creator, listener);
+    }
 
 
 }

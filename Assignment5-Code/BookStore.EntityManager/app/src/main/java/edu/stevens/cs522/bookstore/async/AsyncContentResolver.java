@@ -32,7 +32,7 @@ public class AsyncContentResolver extends AsyncQueryHandler {
     }
 
     public void queryAsync(Uri uri, String[] columns, String select, String[] selectArgs, String order, IContinue<Cursor> callback) {
-        // TODO
+        // TODO???
         this.startQuery(0, callback, uri, columns, select, selectArgs, order);
     }
 
@@ -40,26 +40,33 @@ public class AsyncContentResolver extends AsyncQueryHandler {
     protected void onQueryComplete(int token, Object cookie, Cursor cursor) {
         super.onQueryComplete(token, cookie, cursor);
         // TODO
+        if(cookie != null) {
+            @SuppressWarnings("unchecked")
+            IContinue<Cursor> callback = (IContinue<Cursor>) cookie;
+            callback.kontinue(cursor);
+        }
     }
 
     public void deleteAsync(Uri uri, String select, String[] selectArgs) {
         // TODO
+        this.startDelete(0, null, uri, select, selectArgs);
     }
 
     @Override
     protected void onDeleteComplete(int token, Object cookie, int result) {
         super.onDeleteComplete(token, cookie, result);
-        // TODO
+        // TODO???
     }
 
-    public void updateAsync(Uri uri, String select, String[] selectArgs) {
+    public void updateAsync(Uri uri, ContentValues values, String select, String[] selectArgs) {
         // TODO
+        this.startUpdate(0, null, uri, values, select, selectArgs);
     }
 
     @Override
     protected void onUpdateComplete(int token, Object cookie, int result) {
         super.onUpdateComplete(token, cookie, result);
-        // TODO
+        // TODO???
     }
 
 }

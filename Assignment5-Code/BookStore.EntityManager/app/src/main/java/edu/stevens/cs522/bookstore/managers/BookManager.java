@@ -1,7 +1,9 @@
 package edu.stevens.cs522.bookstore.managers;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.net.Uri;
 
 import java.util.Set;
 
@@ -43,8 +45,16 @@ public class BookManager extends Manager<Book> {
         // TODO
     }
 
-    public void persistAsync(Book book) {
+    public void persistAsync(final Book book) {
         // TODO
+        ContentValues values = new ContentValues();
+        book.writeToProvider(values);
+        contentResolver.insertAsync(BookContract.CONTENT_URI, values, new IContinue<Uri>() {
+            @Override
+            public void kontinue(Uri value) {
+                book.id = BookContract.getId(value);
+            }
+        });
     }
 
     public void deleteBooksAsync(Set<Long> toBeDeleted) {
