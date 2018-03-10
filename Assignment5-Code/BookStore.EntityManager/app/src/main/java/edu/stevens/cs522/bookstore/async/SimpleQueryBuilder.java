@@ -36,6 +36,14 @@ public class SimpleQueryBuilder<T> implements IContinue<Cursor>{
         resolver.queryAsync(uri, null, null, null, null, qb);
     }
 
+    public static <T> void executeQuery(Activity context, Uri uri, String[] projection, String selection, String[] selectionArgs, IEntityCreator<T> helper, ISimpleQueryListener<T> listener) {
+        SimpleQueryBuilder<T> qb = new SimpleQueryBuilder<>(helper, listener);
+
+        AsyncContentResolver resolver = new AsyncContentResolver(context.getContentResolver());
+
+        resolver.queryAsync(uri, projection, selection, selectionArgs, null, qb);
+    }
+
     @Override
     public void kontinue(Cursor value) {
         // TODO complete this

@@ -119,15 +119,15 @@ public class MainActivity extends Activity implements OnItemClickListener, AbsLi
                 // It is okay to do this on the main thread for BookStoreWithContentProvider
                 if(resultCode == RESULT_OK) {
                     Book result = intent.getParcelableExtra(AddBookActivity.BOOK_RESULT_KEY);
-                    ContentValues resultVal = new ContentValues();
-                    result.writeToProvider(resultVal);
-                    Uri baseUri = BookContract.CONTENT_URI;
-
+                    bookManager.persistAsync(result);
                 }
                 break;
             case CHECKOUT_REQUEST:
                 // CHECKOUT: empty the shopping cart.
                 // It is okay to do this on the main thread for BookStoreWithContentProvider
+                if(resultCode == RESULT_OK) {
+                    bookManager.deleteAllBooksAsync();
+                }
                 break;
         }
 
@@ -146,11 +146,15 @@ public class MainActivity extends Activity implements OnItemClickListener, AbsLi
     @Override
     public void handleResults(TypedCursor results) {
         // TODO update the adapter
+        bookAdapter.swapCursor(results.getCursor());
+        bookAdapter.notifyDataSetChanged();
     }
 
     @Override
     public void closeResults() {
         // TODO update the adapter
+        bookAdapter.changeCursor(null);
+        bookAdapter.notifyDataSetChanged();
     }
 
 
@@ -182,7 +186,7 @@ public class MainActivity extends Activity implements OnItemClickListener, AbsLi
         // TODO inflate the menu for the CAB
         MenuInflater inflater = mode.getMenuInflater();
         inflater.inflate(R.menu.books_cab, menu);
-        selected = new HashSet<Long>();
+        selected = new HashSet<>();
         return true;
     }
 
@@ -200,10 +204,7 @@ public class MainActivity extends Activity implements OnItemClickListener, AbsLi
         switch(item.getItemId()) {
             case R.id.delete:
                 // TODO delete the selected books
-                for(long x : selected) {
-                    // delete
-                }
-                // restart loader?
+                bookManager.deleteBooksAsync(selected);
                 return true;
             default:
                 return false;

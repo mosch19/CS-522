@@ -29,6 +29,8 @@ import android.widget.SimpleCursorAdapter;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
 import edu.stevens.cs522.chatserver.R;
@@ -69,6 +71,10 @@ public class ChatServer extends Activity implements OnClickListener, QueryBuilde
     private PeerManager peerManager;
 
     private Button next;
+
+    private String[] from = { MessageContract.SENDER, MessageContract.MESSAGE_TEXT };
+
+    private int[] to = { android.R.id.text1, android.R.id.text2 };
 
     /*
      * Use to configure the app (user name and port)
@@ -111,12 +117,16 @@ public class ChatServer extends Activity implements OnClickListener, QueryBuilde
         setContentView(R.layout.messages);
 
         // TODO use SimpleCursorAdapter to display the messages received.
+        messagesAdapter = new SimpleCursorAdapter(this, android.R.layout.simple_expandable_list_item_2, null, from, to);
 
         // TODO bind the button for "next" to this activity as listener
-
+        next = (Button) findViewById(R.id.next);
+        next.setOnClickListener(this);
         // TODO create the message and peer managers, and initiate a query for all messages
+        messageManager = new MessageManager(this);
+        peerManager = new PeerManager(this);
 
-
+        messageManager.getAllMessagesAsync(this);
 	}
 
     public void onDestroy() {
@@ -128,7 +138,8 @@ public class ChatServer extends Activity implements OnClickListener, QueryBuilde
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
         // TODO inflate a menu with PEERS and SETTINGS options
-
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.chatserver_menu, menu);
         return true;
     }
 
@@ -139,6 +150,8 @@ public class ChatServer extends Activity implements OnClickListener, QueryBuilde
 
             // TODO PEERS provide the UI for viewing list of peers
             case R.id.peers:
+                Intent viewPeers = new Intent(this, ViewPeersActivity.class);
+                startActivity(viewPeers);
                 break;
 
             // TODO SETTINGS provide the UI for settings
@@ -172,8 +185,12 @@ public class ChatServer extends Activity implements OnClickListener, QueryBuilde
 
             final Message message = new Message();
             message.sender = msgContents[0];
-            message.timestamp = new Date(Long.parseLong(msgContents[1]));
-            message.messageText = msgContents[2];
+            message.messageText = msgContents[1];
+
+            String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(Calendar.getInstance().getTime());
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd_HHmmss");
+            Date parsedDate = formatter.parse(timestamp);
+            message.timestamp = parsedDate;
 
 			Log.i(TAG, "Received from " + message.sender + ": " + message.messageText);
 
@@ -215,11 +232,13 @@ public class ChatServer extends Activity implements OnClickListener, QueryBuilde
 
     @Override
     public void handleResults(TypedCursor<Message> results) {
-
+        messagesAdapter.swapCursor(results.getCursor());
+        messagesAdapter.notifyDataSetChanged();
     }
 
     @Override
     public void closeResults() {
-
+        messagesAdapter.swapCursor(null);
+        messagesAdapter.notifyDataSetChanged();
     }
 }

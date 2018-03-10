@@ -88,7 +88,7 @@ public class BookProvider extends ContentProvider {
         // Initialize your content provider on startup.
         dbHelper = new DbHelper(getContext(), DATABASE_NAME, null, DATABASE_VERSION);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
-        // dbHelper.onUpgrade(db, 0, 1);
+//        dbHelper.onUpgrade(db, 0, 1);
         return true;
     }
 
@@ -198,8 +198,8 @@ public class BookProvider extends ContentProvider {
                 dbHelper.onUpgrade(db, 0, 1);
                 return db.delete(BOOKS_TABLE, selection, selectionArgs);
             case SINGLE_ROW:
-                db.delete(AUTHORS_TABLE, AuthorContract.ID + "=" + selection, selectionArgs);
-                return db.delete(BOOKS_TABLE, BookContract._ID + "=" + selection, selectionArgs);
+                db.delete(AUTHORS_TABLE, selection, selectionArgs);
+                return db.delete(BOOKS_TABLE, selection, selectionArgs);
             default:
                 throw new UnsupportedOperationException("Not yet implemented");
         }

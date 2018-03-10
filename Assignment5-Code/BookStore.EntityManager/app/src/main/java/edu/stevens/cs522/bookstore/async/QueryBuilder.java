@@ -15,7 +15,7 @@ import edu.stevens.cs522.bookstore.managers.TypedCursor;
  * Created by dduggan.
  */
 
-public class QueryBuilder<T> implements LoaderManager.LoaderCallbacks {
+public class QueryBuilder<T> implements LoaderManager.LoaderCallbacks<Cursor> {
 
     public static interface IQueryListener<T> {
 
@@ -49,21 +49,33 @@ public class QueryBuilder<T> implements LoaderManager.LoaderCallbacks {
 
     // TODO complete the implementation of this
 
-    public static <T> void executeQuery(String tag, Activity context, Uri uri, int loaderID, IEntityCreator<T> creator, IQueryListener<T> listener) {
+    public static <T> void executeQuery(String tag, Activity context, Uri uri, int loaderID,
+                                        IEntityCreator<T> creator, IQueryListener<T> listener) {
+
         QueryBuilder<T> qb = new QueryBuilder<>(tag, context, uri, loaderID, creator, listener);
         LoaderManager lm = context.getLoaderManager();
         lm.initLoader(loaderID, null, qb);
     }
 
-    @Override
-    public Loader onCreateLoader(int id, Bundle args) {
-        if(id == loaderID) {
-            return new CursorLoader(context, uri, projection, select, selectArgs, null);
-        }
+    public static <T> void reexecuteQuery(String tag, Activity context, Uri uri, int loaderID,
+                                          String[] projection, String selection, String[] selectionArgs,
+                                          IEntityCreator<T> creator, IQueryListener<T> listener) {
+
+        QueryBuilder<T> qb = new QueryBuilder<>(tag, context, uri, loaderID, creator, listener);
+        LoaderManager lm = context.getLoaderManager();
+        lm.restartLoader(loaderID, null, qb);
     }
 
     @Override
-    public void onLoadFinished(Loader loader<Cursor>, Cursor cursor) {
+    public Loader onCreateLoader(int id, Bundle args) {
+        if(id == loaderID) {
+            return new CursorLoader(context, uri, null, null, null, null);
+        }
+        return null;
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
         if(loader.getId() == loaderID) {
             listener.handleResults(new TypedCursor<T>(cursor, creator));
         } else {
