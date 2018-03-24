@@ -77,6 +77,5 @@ public class Peer implements Parcelable {
         DateUtils.putDate(out, PeerContract.TIMESTAMP, this.timestamp);
         InetAddressUtils.putAddress(out, PeerContract.ADDRESS, this.address);
         PeerContract.putPort(out, this.port);
-
     }
 }
