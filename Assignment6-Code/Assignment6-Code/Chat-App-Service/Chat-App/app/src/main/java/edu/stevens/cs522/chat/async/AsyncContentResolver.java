@@ -7,6 +7,8 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.util.Log;
 
+import static edu.stevens.cs522.chat.contracts.BaseContract.getId;
+
 /**
  * Created by dduggan.
  */
@@ -19,7 +21,7 @@ public class AsyncContentResolver extends AsyncQueryHandler {
 
     public void insertAsync(Uri uri,
                             ContentValues values,
-                            IContinue<Uri> callback) {
+                            IContinue<Long> callback) {
         this.startInsert(0, callback, uri, values);
     }
 
@@ -27,8 +29,8 @@ public class AsyncContentResolver extends AsyncQueryHandler {
     public void onInsertComplete(int token, Object cookie, Uri uri) {
         if (cookie != null) {
             @SuppressWarnings("unchecked")
-            IContinue<Uri> callback = (IContinue<Uri>) cookie;
-            callback.kontinue(uri);
+            IContinue<Long> callback = (IContinue<Long>) cookie;
+            callback.kontinue(getId(uri));
         }
     }
 

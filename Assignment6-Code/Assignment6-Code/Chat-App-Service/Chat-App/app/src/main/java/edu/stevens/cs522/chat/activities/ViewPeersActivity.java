@@ -40,6 +40,7 @@ public class ViewPeersActivity extends Activity implements AdapterView.OnItemCli
         ListView peerList = (ListView) findViewById(R.id.peerList);
         peerAdapter = new SimpleCursorAdapter(this, android.R.layout.simple_expandable_list_item_2, null, from, to);
         peerList.setAdapter(peerAdapter);
+        peerList.setOnItemClickListener(this);
 
         peerManager = new PeerManager(this);
         peerManager.getAllPeersAsync(this);

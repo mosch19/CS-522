@@ -26,6 +26,7 @@ public class BaseContract implements BaseColumns {
         return builder.build();
     }
 
+
     public static final long getId(Uri uri) {
         return Long.parseLong(uri.getLastPathSegment());
     }

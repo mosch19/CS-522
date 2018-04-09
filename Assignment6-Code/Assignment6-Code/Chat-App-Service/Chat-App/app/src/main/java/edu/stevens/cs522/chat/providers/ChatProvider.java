@@ -73,6 +73,7 @@ public class ChatProvider extends ContentProvider {
         @Override
         public void onCreate(SQLiteDatabase db) {
             // TODO initialize database tables
+            onUpgrade(db, 0, 1);
             db.execSQL(MESSAGES_CREATE);
             db.execSQL(PEERS_CREATE);
         }
@@ -127,7 +128,7 @@ public class ChatProvider extends ContentProvider {
 
     @Override
     public Uri insert(Uri uri, ContentValues values) {
-        Log.d("In insert", "Hello");
+        Log.d("Inserting", "x");
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         long row;
         Uri instanceUri;
@@ -147,14 +148,17 @@ public class ChatProvider extends ContentProvider {
             case PEERS_ALL_ROWS:
                 // TODO: Implement this to handle requests to insert a new peer.
                 // Make sure to notify any observers
-                String[] selectionArgs = { PeerContract.NAME };
+                String[] selectionArgs = { values.getAsString(PeerContract.NAME) };
+                String[] projection = {PeerContract.ID, PeerContract.NAME, PeerContract.TIMESTAMP, PeerContract.ADDRESS, PeerContract.PORT };
                 instanceUri = PeerContract.CONTENT_URI("1");
-                Cursor peerCursor = query(instanceUri, null, PeerContract.NAME+"=?", selectionArgs, null);
+                Cursor peerCursor = query(instanceUri, projection, PeerContract.NAME+"=?", selectionArgs, null);
                 // Check to see if peer is already in the database
                 if(!peerCursor.moveToFirst()) {
-                    row = db.insert(MESSAGES_TABLE, null, values);
+                    Log.d("New peer", "here");
+                    values.remove(PeerContract.ID);
+                    row = db.insert(PEERS_TABLE, null, values);
                     if (row != 0) {
-                        instanceUri = MessageContract.CONTENT_URI(row);
+                        instanceUri = PeerContract.CONTENT_URI(row);
                         ContentResolver cr = getContext().getContentResolver();
                         cr.notifyChange(instanceUri, null);
                         return instanceUri;
@@ -162,6 +166,7 @@ public class ChatProvider extends ContentProvider {
                         throw new IllegalStateException("insert: bad case");
                     }
                 } else {
+                    Log.d("Updating", "here");
                     // update the record
                     String select = PeerContract.ID + "=" + PeerContract.getId(peerCursor);
                     row = update(PeerContract.CONTENT_URI(PeerContract.getId(peerCursor)), values, select, null);
@@ -191,23 +196,31 @@ public class ChatProvider extends ContentProvider {
         String[] projection_messages = { MessageContract.ID, MessageContract.MESSAGE_TEXT, MessageContract.TIMESTAMP, MessageContract.SENDER, MessageContract.SENDER_ID };
         String[] projection_peers = { PeerContract.ID, PeerContract.NAME, PeerContract.TIMESTAMP, PeerContract.ADDRESS, PeerContract.PORT };
 
+        Cursor cursor = null;
+
         switch (uriMatcher.match(uri)) {
             case MESSAGES_ALL_ROWS:
                 // TODO: Implement this to handle query of all messages.
-                return db.query(MESSAGES_TABLE, projection_messages, null, null, null, null, sortOrder);
+                cursor = db.query(MESSAGES_TABLE, projection_messages, null, null, null, null, sortOrder);
+                break;
             case PEERS_ALL_ROWS:
                 // TODO: Implement this to handle query of all peers.
-                return db.query(PEERS_TABLE, projection_peers, null, null, null, null, sortOrder);
+                cursor = db.query(PEERS_TABLE, projection_peers, null, null, null, null, sortOrder);
+                break;
             case MESSAGES_SINGLE_ROW:
                 // TODO: Implement this to handle query of a specific message.
-                return db.query(MESSAGES_TABLE, projection_messages, selection, selectionArgs, null, null, sortOrder);
+                cursor = db.query(MESSAGES_TABLE, projection_messages, selection, selectionArgs, null, null, sortOrder);
+                break;
             case PEERS_SINGLE_ROW:
                 // TODO: Implement this to handle query of a specific peer.
-                Log.d("About to query for one", "x");
-                return db.query(PEERS_TABLE, projection_peers, selection, selectionArgs, null, null, sortOrder);
+                cursor = db.query(PEERS_TABLE, projection_peers, selection, selectionArgs, null, null, sortOrder);
+                Log.d("Cursor info in query", cursor.getCount() + "");
+                break;
             default:
                 throw new IllegalStateException("insert: bad case");
         }
+        cursor.setNotificationUri(getContext().getContentResolver(), uri);
+        return cursor;
     }
 
     @Override
@@ -217,7 +230,7 @@ public class ChatProvider extends ContentProvider {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         switch (uriMatcher.match(uri)) {
             case PEERS_SINGLE_ROW:
-                return db.update(MESSAGES_TABLE, values, selection, selectionArgs);
+                return db.update(PEERS_TABLE, values, selection, selectionArgs);
             case MESSAGES_ALL_ROWS:
             case PEERS_ALL_ROWS:
             case MESSAGES_SINGLE_ROW:

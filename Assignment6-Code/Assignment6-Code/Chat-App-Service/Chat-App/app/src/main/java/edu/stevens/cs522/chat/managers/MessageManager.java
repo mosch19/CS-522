@@ -50,13 +50,14 @@ public class MessageManager extends Manager<ChatMessage> {
         ContentValues values = new ContentValues();
         message.writeToProvider(values);
         contentResolver.insertAsync(MessageContract.CONTENT_URI, values,
-                new IContinue<Uri>() {
-                    @Override
-                    public void kontinue(Uri value) {
-                        message.id = MessageContract.getId(value);
-                        reexecuteQuery(MessageContract.CONTENT_URI, null, null, null, (IQueryListener<ChatMessage>) context);
+                new IContinue<Long>() {
+                   @Override
+                    public void kontinue(Long value) {
+                        message.id = value;
+                        //reexecuteQuery(MessageContract.CONTENT_URI, null, null, null, (IQueryListener<ChatMessage>) context);
                     }
-                });
+                }
+);
     }
 
 }

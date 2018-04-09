@@ -55,6 +55,7 @@ public class PeerManager extends Manager<Peer> {
             @Override
             public void kontinue(Cursor value) {
                 // if value isn't in table
+                value.moveToFirst();
                 if(value.getCount() == 0) {
                     callback.kontinue(null);
                 } else {
@@ -67,22 +68,26 @@ public class PeerManager extends Manager<Peer> {
 
     public void persistAsync(final Peer peer, final IContinue<Long> callback) {
         // TODO need to ensure the peer is not already in the database
-        getPeerAsync(peer.id, new IContinue<Peer>() {
-            @Override
-            public void kontinue(Peer value) {
-                if (value == null){
-                    ContentValues values = new ContentValues();
-                    peer.writeToProvider(values);
-                    contentResolver.insertAsync(PeerContract.CONTENT_URI,
-                            values, new IContinue<Uri>() {
-                                @Override
-                                public void kontinue(Uri value) {
-                                    callback.kontinue(PeerContract.getId(value));
-                                }
-                            });
-                }
-            }
-        });
+//        getPeerAsync(peer.id, new IContinue<Peer>() {
+//            @Override
+//            public void kontinue(Peer value) {
+//                if (value == null){
+//                    ContentValues values = new ContentValues();
+//                    peer.writeToProvider(values);
+//                    contentResolver.insertAsync(PeerContract.CONTENT_URI,
+//                            values, new IContinue<Uri>() {
+//                                @Override
+//                                public void kontinue(Uri value) {
+//                                    callback.kontinue(PeerContract.getId(value));
+//                                }
+//                            });
+//                }
+//            }
+//        });
+
+        ContentValues cv= new ContentValues();
+        peer.writeToProvider(cv);
+        contentResolver.insertAsync(PeerContract.CONTENT_URI,cv,callback);
     }
 
 }
