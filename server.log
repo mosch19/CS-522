@@ -1,0 +1,11 @@
+May 03, 2018 7:29:22 PM edu.stevens.cs522.chat.webservice.Main info
+INFO: Starting HTTP server...
+May 03, 2018 7:29:23 PM org.glassfish.grizzly.http.server.NetworkListener start
+INFO: Started listener bound to [slaptop:8080]
+May 03, 2018 7:29:23 PM org.glassfish.grizzly.http.server.HttpServer start
+INFO: [HttpServer] Started.
+May 03, 2018 7:29:23 PM edu.stevens.cs522.chat.webservice.Main info
+INFO: Listening at http://slaptop:8080
+May 03, 2018 7:29:23 PM edu.stevens.cs522.chat.webservice.Main info
+INFO: Service available at http://slaptop:8080/chat
+Hit enter to stop...
