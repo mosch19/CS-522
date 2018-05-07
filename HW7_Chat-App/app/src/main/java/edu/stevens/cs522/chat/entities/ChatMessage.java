@@ -47,13 +47,18 @@ public class ChatMessage implements Parcelable {
         public ChatMessage[] newArray(int size) { return new ChatMessage[size]; }
     };
 
-    public ChatMessage(String sender, String messageText, String chatRoom, Date timestamp, long senderId) {
+    public ChatMessage(String sender, String messageText, String chatRoom, Date timestamp, long senderId, double longitude, double latitude, long seqNum) {
         this.sender = sender;
         this.messageText = messageText;
         this.chatRoom = chatRoom;
         this.timestamp = timestamp;
         this.senderId = senderId;
+        this.longitude = longitude;
+        this.latitude = latitude;
+        this.seqNum = seqNum;
     }
+
+    public ChatMessage() {}
 
     public int describeContents() { return 0; }
 

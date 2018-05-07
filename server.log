@@ -1,11 +1,35 @@
-May 03, 2018 7:29:22 PM edu.stevens.cs522.chat.webservice.Main info
+May 06, 2018 4:54:01 PM edu.stevens.cs522.chat.webservice.Main info
 INFO: Starting HTTP server...
-May 03, 2018 7:29:23 PM org.glassfish.grizzly.http.server.NetworkListener start
-INFO: Started listener bound to [slaptop:8080]
-May 03, 2018 7:29:23 PM org.glassfish.grizzly.http.server.HttpServer start
+May 06, 2018 4:54:02 PM org.glassfish.grizzly.http.server.NetworkListener start
+INFO: Started listener bound to [127.0.0.1:8080]
+May 06, 2018 4:54:02 PM org.glassfish.grizzly.http.server.HttpServer start
 INFO: [HttpServer] Started.
-May 03, 2018 7:29:23 PM edu.stevens.cs522.chat.webservice.Main info
-INFO: Listening at http://slaptop:8080
-May 03, 2018 7:29:23 PM edu.stevens.cs522.chat.webservice.Main info
-INFO: Service available at http://slaptop:8080/chat
+May 06, 2018 4:54:02 PM edu.stevens.cs522.chat.webservice.Main info
+INFO: Listening at http://127.0.0.1:8080
+May 06, 2018 4:54:02 PM edu.stevens.cs522.chat.webservice.Main info
+INFO: Service available at http://127.0.0.1:8080/chat
 Hit enter to stop...
+May 06, 2018 4:54:05 PM edu.stevens.cs522.chat.webservice.ChatResource messages
+INFO: DEBUG: Received getMessages  request
+May 06, 2018 4:54:05 PM edu.stevens.cs522.chat.webservice.ChatResource$2 write
+INFO: DEBUG: Listed all messages)
+May 06, 2018 4:56:12 PM edu.stevens.cs522.chat.webservice.ChatResource register
+INFO: Received registration request (client=374d1a05-2a15-4d40-bdb4-098902a20b54, username=mike, timestamp=1525640171808, latitude=0.0, longitude=0.0)
+May 06, 2018 4:56:12 PM edu.stevens.cs522.chat.webservice.ChatResource register
+INFO: Successfully registered user mike with UUID 374d1a05-2a15-4d40-bdb4-098902a20b54.
+May 06, 2018 4:56:33 PM edu.stevens.cs522.chat.webservice.ChatResource postMessage
+INFO: Received postMessage request (id = 1)
+May 06, 2018 4:56:33 PM edu.stevens.cs522.chat.webservice.ChatResource postMessage
+INFO: Received message hello world (chatroom first room)
+May 06, 2018 4:56:39 PM edu.stevens.cs522.chat.webservice.ChatResource messages
+INFO: DEBUG: Received getMessages  request
+May 06, 2018 4:56:39 PM edu.stevens.cs522.chat.webservice.ChatResource$2 write
+INFO: DEBUG: Listed all messages)
+May 06, 2018 4:56:48 PM edu.stevens.cs522.chat.webservice.ChatResource postMessage
+INFO: Received postMessage request (id = 1)
+May 06, 2018 4:56:48 PM edu.stevens.cs522.chat.webservice.ChatResource postMessage
+INFO: Received message hello there! (chatroom first room)
+May 06, 2018 4:56:52 PM edu.stevens.cs522.chat.webservice.ChatResource messages
+INFO: DEBUG: Received getMessages  request
+May 06, 2018 4:56:52 PM edu.stevens.cs522.chat.webservice.ChatResource$2 write
+INFO: DEBUG: Listed all messages)
